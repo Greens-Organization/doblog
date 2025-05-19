@@ -1,6 +1,6 @@
 # MIT License
 
-Copyright (c) 2025 rds_agi
+Copyright (c) 2025 GRN Group
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

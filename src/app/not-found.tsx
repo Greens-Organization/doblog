@@ -1,7 +1,7 @@
-import Link from "next/link"
-import { Terminal } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
+import { Terminal } from 'lucide-react'
+import Link from 'next/link'
 
 export default function NotFound() {
   return (
@@ -33,7 +33,11 @@ export default function NotFound() {
           </div>
         </CardContent>
         <CardFooter className="pt-6 border-t border-dashed mt-6">
-          <Button variant="outline" className="w-full rounded-none border-dashed" asChild>
+          <Button
+            variant="outline"
+            className="w-full rounded-none border-dashed"
+            asChild
+          >
             <Link href="/">$ cd /home</Link>
           </Button>
         </CardFooter>
