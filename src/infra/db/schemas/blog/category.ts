@@ -1,7 +1,7 @@
-import { relations } from 'drizzle-orm';
-import { pgTable, text } from 'drizzle-orm/pg-core';
-import { createdAt, idPrimaryKey, updatedAt } from "../helpers";
-import { subcategory } from './subcategory';
+import { relations } from 'drizzle-orm'
+import { pgTable, text } from 'drizzle-orm/pg-core'
+import { createdAt, idPrimaryKey, updatedAt } from '../helpers'
+import { subcategory } from './subcategory'
 
 export const category = pgTable('category', {
   id: idPrimaryKey,
