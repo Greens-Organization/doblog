@@ -8,7 +8,9 @@ const booleanSchema = z
 
 export const env = createEnv({
   server: {
-    NODE_ENV: z.enum(['production', 'development']).default('development'),
+    NODE_ENV: z
+      .enum(['production', 'development', 'test'])
+      .default('development'),
     DEBUG: booleanSchema,
     ADMIN_EMAIL: z.string().email().optional().default('admin@grngroup.net'),
     ADMIN_PASSWORD: z.string().optional().default('admin123'),
