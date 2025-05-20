@@ -1,11 +1,20 @@
-import { env } from '@/env'
+import { env, isDevelopment } from '@/env'
 import * as schema from '@/infra/db/schema'
 import { neon } from '@neondatabase/serverless'
-import { type NeonHttpDatabase, drizzle } from 'drizzle-orm/neon-http'
+import { drizzle as drizzleNeon } from 'drizzle-orm/neon-http'
+import { drizzle as drizzlePostgres } from 'drizzle-orm/node-postgres'
 
 const clientNeon = neon(env.DATABASE_URL)
 
-export const db: NeonHttpDatabase<typeof schema> = drizzle(clientNeon, {
-  schema,
-  logger: env.DRIZZLE_LOGGER
-})
+const drizzle = {
+  neon: drizzleNeon(clientNeon, {
+    schema,
+    logger: env.DRIZZLE_LOGGER
+  }),
+  default: drizzlePostgres(env.DATABASE_URL, {
+    schema,
+    logger: env.DRIZZLE_LOGGER
+  })
+}
+
+export const db = isDevelopment ? drizzle.default : drizzle.neon
