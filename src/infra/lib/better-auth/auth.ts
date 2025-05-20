@@ -9,6 +9,7 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: 'pg'
   }),
+
   emailAndPassword: {
     enabled: true, // TODO: Add this on env to setup if application use this or socialProviders
     password: {
