@@ -2,7 +2,7 @@ import { auth } from '@/infra/lib/better-auth/auth'
 import { headers } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
 
-const protectedRoutes = ['/dashboard']
+const protectedRoutes = ['/dashboard', '/api/v1/dashboard']
 const authRoutes = ['/sign-in', '/sign-up']
 
 export async function middleware(request: NextRequest) {

@@ -1,5 +1,6 @@
 import { makePasswordHasher } from '@/infra/cryptography/password'
 import { db } from '@/infra/db'
+import { account, session, user, verification } from '@/infra/db/schemas/auth'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { nextCookies } from 'better-auth/next-js'
@@ -7,7 +8,13 @@ import { socialProviders } from './providers'
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
-    provider: 'pg'
+    provider: 'pg',
+    schema: {
+      user,
+      session,
+      account,
+      verification
+    }
   }),
 
   emailAndPassword: {
