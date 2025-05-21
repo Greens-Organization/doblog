@@ -14,7 +14,7 @@
     }
   ],
   "files": {
-    "ignore": [".vscode/*"]
+    "ignore": [".vscode/*", "drizzle/migrations/*"]
   },
   "linter": {
     "enabled": true,

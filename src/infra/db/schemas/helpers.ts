@@ -1,5 +1,7 @@
-import { timestamp, uuid } from 'drizzle-orm/pg-core'
+import { text, timestamp } from 'drizzle-orm/pg-core'
 
-export const idPrimaryKey = uuid('id').primaryKey().defaultRandom()
+export const idPrimaryKey = text('id')
+  .primaryKey()
+  .$defaultFn(() => crypto.randomUUID())
 export const createdAt = timestamp('created_at').defaultNow()
 export const updatedAt = timestamp('updated_at').$onUpdate(() => new Date())

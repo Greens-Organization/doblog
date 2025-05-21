@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm'
-import { pgTable, text, uuid } from 'drizzle-orm/pg-core'
+import { pgTable, text } from 'drizzle-orm/pg-core'
 import { createdAt, idPrimaryKey, updatedAt } from '../helpers'
 import { category } from './category'
 import { post } from './post'
@@ -9,7 +9,7 @@ export const subcategory = pgTable('subcategory', {
   name: text('name').notNull(),
   slug: text('slug').notNull().unique(),
   description: text('description'),
-  categoryId: uuid('category_id')
+  categoryId: text('category_id')
     .notNull()
     .references(() => category.id, { onDelete: 'cascade' }),
   createdAt,

@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm'
-import { pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { pgEnum, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { user } from '../auth/user'
 import { createdAt, idPrimaryKey, updatedAt } from '../helpers'
 import { subcategory } from './subcategory'
@@ -18,10 +18,10 @@ export const post = pgTable('post', {
   content: text('content').notNull(),
   featuredImage: text('featured_image'),
   status: postStatusEnum('status').default('draft').notNull(),
-  subcategoryId: uuid('subcategory_id')
+  subcategoryId: text('subcategory_id')
     .notNull()
     .references(() => subcategory.id),
-  authorId: uuid('author_id')
+  authorId: text('author_id')
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' }),
   createdAt,
