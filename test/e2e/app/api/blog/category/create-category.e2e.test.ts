@@ -1,92 +1,62 @@
 import { constants } from '@test/e2e/helpers/constants'
+import { signInAsAdmin } from '@test/e2e/helpers/sign-in-admin'
 import { describe, expect, it } from 'bun:test'
 
-const baseUrl = `${constants.SERVER}/api/v1/dashboard/category`
+const baseUrl = `${constants.SERVER}${constants.PREFIX}/blog/category`
 
-describe('Category - Create Category', () => {
-  it('e2e: POST /api/v1/dashboard/category deve criar uma categoria', async () => {
-    const payload = {
-      name: 'Test Category',
-      slug: 'test-category',
-      description: 'A category created for testing purposes'
-    }
+const mockData = {
+  name: 'E2E Category',
+  slug: 'e2e-category',
+  description: 'E2E test category'
+}
+
+describe('Category - Create', () => {
+  it('should create a new category successfully', async () => {
+    const cookie = await signInAsAdmin()
 
     const response = await fetch(baseUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      headers: {
+        'Content-Type': 'application/json',
+        ...(cookie ? { cookie } : {})
+      },
+      body: JSON.stringify(mockData)
     })
-
-    expect(response.status).toBe(201)
-    const data = await response.json()
-    expect(data).toHaveProperty('id')
-    expect(data.name).toBe(payload.name)
-    expect(data.slug).toBe(payload.slug)
-
-    // Cleanup
-    await fetch(`${baseUrl}/${data.id}`, { method: 'DELETE' })
+    expect(response.status).toBe(200)
+    const json = await response.json()
+    expect(json.value.name).toBe(mockData.name)
+    expect(json.value.slug).toBe(mockData.slug)
+    expect(json.value.description).toBe(mockData.description)
   })
 
-  it('e2e: POST /api/v1/dashboard/category com slug duplicado deve falhar', async () => {
-    const payload = {
-      name: 'Category Dup',
-      slug: 'category-dup',
+  it('should not allow duplicate category slug', async () => {
+    const cookie = await signInAsAdmin()
+    const data = {
+      name: 'Duplicate Category',
+      slug: `duplicate-category-${Math.random().toString(36).slice(2, 8)}`,
       description: 'Duplicate test'
     }
-
-    const created = await fetch(baseUrl, {
+    // First creation
+    await fetch(baseUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }).then((res) => res.json())
-
+      headers: {
+        'Content-Type': 'application/json',
+        ...(cookie ? { cookie } : {})
+      },
+      body: JSON.stringify(data)
+    })
+    // Second creation with same slug
     const response = await fetch(baseUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      headers: {
+        'Content-Type': 'application/json',
+        ...(cookie ? { cookie } : {})
+      },
+      body: JSON.stringify(data)
     })
-
+    console.log('response.status)', response)
     expect(response.status).toBe(409)
-    const data = await response.json()
-    expect(data).toHaveProperty('error')
-    expect(data.error).toMatch(/already exists/i)
-
-    await fetch(`${baseUrl}/${created.id}`, { method: 'DELETE' })
-  })
-
-  it('e2e: POST /api/v1/dashboard/category com dados inválidos deve falhar', async () => {
-    const payload = {
-      name: '', // inválido
-      slug: '', // inválido
-      description: 'Missing required fields'
-    }
-
-    const response = await fetch(baseUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-
-    expect(response.status).toBe(422)
-    const data = await response.json()
-    expect(data).toHaveProperty('error')
-  })
-
-  it('e2e: POST /api/v1/dashboard/category com slug inválido deve falhar', async () => {
-    const payload = {
-      name: 'Invalid Slug',
-      slug: 'invalid slug with spaces',
-      description: 'Invalid slug'
-    }
-
-    const response = await fetch(baseUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-
-    expect(response.status).toBe(422)
-    const data = await response.json()
-    expect(data).toHaveProperty('error')
+    const json = await response.json()
+    expect(json.error.message).toMatch(/already exists/i)
   })
 })

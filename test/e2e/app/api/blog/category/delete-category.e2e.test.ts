@@ -1,42 +1,41 @@
 import { constants } from '@test/e2e/helpers/constants'
+import { signInAsAdmin } from '@test/e2e/helpers/sign-in-admin'
 import { describe, expect, it } from 'bun:test'
+import { createCategory } from './helper/create-category'
 
-const baseUrl = `${constants.SERVER}/api/v1/dashboard/category`
+const baseUrl = `${constants.SERVER}${constants.PREFIX}/blog/category`
 
-describe('Category - Delete Category', () => {
-  it('e2e: DELETE /api/v1/dashboard/category/:id deve excluir a categoria', async () => {
-    // Cria categoria temporária
-    const created = await fetch(baseUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: 'To be deleted',
-        slug: 'to-be-deleted',
-        description: 'Temporary category'
-      })
-    }).then((res) => res.json())
+describe('Category - Delete', () => {
+  it('should delete a category successfully', async () => {
+    const cookie = await signInAsAdmin()
+    const { json } = await createCategory(cookie)
+    const id = json.value.id
 
-    const response = await fetch(`${baseUrl}/${created.id}`, {
-      method: 'DELETE'
+    const response = await fetch(`${baseUrl}/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(cookie ? { cookie } : {})
+      }
     })
-
     expect(response.status).toBe(200)
-
-    const data = await response.json()
-    expect(data.message).toMatch(/successfully deleted/i)
-    expect(data.deleted.id).toBe(created.id)
+    const resJson = await response.json()
+    expect(resJson.value.message).toBe('Category successfully deleted')
+    expect(resJson.value.deleted.id).toBe(id)
   })
 
-  it('e2e: DELETE /api/v1/dashboard/category/:id inexistente deve retornar 404', async () => {
+  it('should return 404 for non-existent category', async () => {
+    const cookie = await signInAsAdmin()
     const fakeId = '00000000-0000-0000-0000-000000000000'
     const response = await fetch(`${baseUrl}/${fakeId}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(cookie ? { cookie } : {})
+      }
     })
-
     expect(response.status).toBe(404)
-
-    const data = await response.json()
-    expect(data).toHaveProperty('error')
-    expect(data.error).toMatch(/not found/i)
+    const resJson = await response.json()
+    expect(resJson.error.message).toMatch(/not found/i)
   })
 })
