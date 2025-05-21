@@ -1,5 +1,6 @@
 import { pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { createdAt, idPrimaryKey, updatedAt } from '../helpers'
+import type { InferSelectModel } from 'drizzle-orm'
 
 export const verification = pgTable('verification', {
   id: idPrimaryKey,
@@ -9,3 +10,5 @@ export const verification = pgTable('verification', {
   createdAt,
   updatedAt
 })
+
+export type DVerification = InferSelectModel<typeof verification>

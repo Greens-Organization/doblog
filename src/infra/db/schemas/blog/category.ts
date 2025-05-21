@@ -1,4 +1,4 @@
-import { relations } from 'drizzle-orm'
+import { type InferSelectModel, relations } from 'drizzle-orm'
 import { pgTable, text } from 'drizzle-orm/pg-core'
 import { createdAt, idPrimaryKey, updatedAt } from '../helpers'
 import { subcategory } from './subcategory'
@@ -15,3 +15,5 @@ export const category = pgTable('category', {
 export const categoryRelations = relations(category, ({ many }) => ({
   subcategory: many(subcategory)
 }))
+
+export type DCategory = InferSelectModel<typeof category>

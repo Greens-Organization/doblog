@@ -1,13 +1,13 @@
-import { account } from './schemas/auth/account'
-import { session } from './schemas/auth/session'
-import { user } from './schemas/auth/user'
-import { verification } from './schemas/auth/verification'
-import { category } from './schemas/blog/category'
-import { post } from './schemas/blog/post'
-import { subcategory } from './schemas/blog/subcategory'
-import { tag } from './schemas/blog/tag'
+import * as account from './schemas/auth/account'
+import * as session from './schemas/auth/session'
+import * as user from './schemas/auth/user'
+import * as verification from './schemas/auth/verification'
+import * as category from './schemas/blog/category'
+import * as post from './schemas/blog/post'
+import * as subcategory from './schemas/blog/subcategory'
+import * as tag from './schemas/blog/tag'
 
-export const schemas = {
+export const schema = {
   // better auth
   ...user,
   ...session,

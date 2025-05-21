@@ -1,6 +1,7 @@
 import { pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { createdAt, idPrimaryKey, updatedAt } from '../helpers'
 import { user } from './user'
+import type { InferSelectModel } from 'drizzle-orm'
 
 export const account = pgTable('account', {
   id: idPrimaryKey,
@@ -19,3 +20,5 @@ export const account = pgTable('account', {
   createdAt,
   updatedAt
 })
+
+export type DAccount = InferSelectModel<typeof account>
