@@ -1,10 +1,10 @@
 {
   "name": "doblog",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "The easiest way for you to implement a blog in your company.",
   "author": {
     "name": "GRN Group",
-    "email": "greens.group.2015@gmail.com"
+    "email": "contact@grngroup.net"
   },
   "maintainers": [
     {
@@ -12,12 +12,12 @@
       "email": "alpha.vylly12@gmail.com"
     },
     {
-      "name": "Matheus Agostinho (TheMath123)",
-      "email": "contact@matheuspa.com"
-    },
-    {
       "name": "Kaik Selhorst (Bseven)",
       "email": "oficial.kaikselhorst@gmail.com"
+    },
+    {
+      "name": "Matheus Agostinho (TheMath123)",
+      "email": "contact@matheuspa.com"
     }
   ],
   "private": true,
@@ -29,7 +29,7 @@
     "test": "NODE_TLS_REJECT_UNAUTHORIZED=0 bun test",
     "test:e2e": "NODE_TLS_REJECT_UNAUTHORIZED=0 bun test --test-name-pattern e2e",
     "lint": "biome check",
-    "lint:fix": "biome check --write ./**/*",
+    "lint:fix": "biome check --write ./src",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "bun run ./src/infra/db/migrate.ts",
     "db:push": "drizzle-kit push",
