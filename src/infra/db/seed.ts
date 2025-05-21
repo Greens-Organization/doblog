@@ -120,6 +120,9 @@ async function seed() {
     logger.info('Seed concluided with success!')
   } catch (error) {
     logger.error('Error on start seed:', error)
+    process.exit(1)
+  } finally {
+    process.exit(0)
   }
 }
 seed()

@@ -8,6 +8,14 @@
     "enabled": true,
     "useIgnoreFile": true
   },
+  "overrides": [
+    {
+      "ignore": ["node_modules", "dist"]
+    }
+  ],
+  "files": {
+    "ignore": []
+  },
   "linter": {
     "enabled": true,
     "rules": {

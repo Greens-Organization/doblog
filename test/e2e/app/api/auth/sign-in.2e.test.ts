@@ -1,11 +1,10 @@
-import { env } from '@/env'
 import { describe, expect, it } from 'bun:test'
-
-const server = 'http://localhost:3000'
+import { env } from '@/env'
+import { constants } from '../../../helpers/constants'
 
 describe('Auth - Sign In', () => {
   it('e2e: POST api/auth/sign-in deve retornar sucesso para login', async () => {
-    const response = await fetch(`${server}/api/auth/sign-in/email`, {
+    const response = await fetch(`${constants.SERVER}/auth/sign-in/email`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

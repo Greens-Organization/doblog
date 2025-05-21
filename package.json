@@ -27,6 +27,7 @@
     "build": "next build",
     "start": "next start",
     "test": "NODE_TLS_REJECT_UNAUTHORIZED=0 bun test",
+    "test:e2e": "NODE_TLS_REJECT_UNAUTHORIZED=0 bun test --test-name-pattern e2e",
     "lint": "biome check",
     "lint:fix": "biome check --write ./**/*",
     "db:generate": "drizzle-kit generate",
@@ -34,7 +35,10 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:check": "drizzle-kit check",
-    "db:seed": "bun run ./src/infra/db/seed.ts"
+    "db:seed": "bun run ./src/infra/db/seed.ts",
+    "dockerup": "docker compose up -d",
+    "dockerdown": "docker compose down",
+    "prepare": "husky"
   },
   "dependencies": {
     "@hookform/resolvers": "5.0.1",
@@ -72,6 +76,7 @@
     "@types/react": "19.1.4",
     "@types/react-dom": "19.1.5",
     "drizzle-kit": "0.31.1",
+    "husky": "9.1.7",
     "tailwindcss": "4.1.6",
     "tw-animate-css": "1.2.9",
     "typescript": "5.8.3"

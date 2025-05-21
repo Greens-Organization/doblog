@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1747697249721,
-      "tag": "0000_spooky_glorian",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1747773126330,
-      "tag": "0001_mushy_spectrum",
+      "when": 1747840201494,
+      "tag": "0000_far_sleepwalker",
       "breakpoints": true
     }
   ]

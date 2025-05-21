@@ -1,15 +1,15 @@
-import { isDevelopment } from "@/env";
-import type { NextConfig } from "next";
+import { isDevelopment } from '@/env'
+import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   experimental: {
-    nodeMiddleware: true,
+    nodeMiddleware: true
   },
   logging: {
     fetches: {
       fullUrl: isDevelopment
     }
   }
-};
+}
 
-export default nextConfig;
+export default nextConfig
