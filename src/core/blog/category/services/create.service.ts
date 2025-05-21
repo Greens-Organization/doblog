@@ -1,14 +1,13 @@
 import type { AppEither } from '@/core/error/app-either.protocols'
-import { left, right } from '@/core/error/either'
+import { isLeft, left, right } from '@/core/error/either'
 import {
   ConflictError,
   DatabaseError,
-  UnauthorizedError,
   ValidationError
 } from '@/core/error/errors'
 import { db } from '@/infra/db'
 import { category } from '@/infra/db/schemas/blog'
-import { auth } from '@/infra/lib/better-auth/auth'
+import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { categorySchema } from '@/infra/validations/schemas'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
@@ -18,13 +17,8 @@ export async function createCategory(
   request: Request
 ): Promise<AppEither<ICategoryDTO>> {
   try {
-    const session = await auth.api.getSession({
-      headers: request.headers
-    })
-
-    if (!session) {
-      return left(new UnauthorizedError())
-    }
+    const sessionResult = await ensureAuthenticated(request)
+    if (isLeft(sessionResult)) return sessionResult
 
     const bodyData = await request.json()
 

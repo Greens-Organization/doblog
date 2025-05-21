@@ -1,19 +1,19 @@
 import type { AppEither } from '@/core/error/app-either.protocols'
-import { left, right } from '@/core/error/either'
+import { isLeft, left, right } from '@/core/error/either'
 import {
   ConflictError,
   DatabaseError,
   NotFoundError,
-  UnauthorizedError,
   ValidationError
 } from '@/core/error/errors'
 import { db } from '@/infra/db'
 import { category } from '@/infra/db/schemas/blog'
-import { auth } from '@/infra/lib/better-auth/auth'
+import { extractAndValidatePathParam } from '@/infra/helpers/params'
 import { categorySchema } from '@/infra/validations/schemas'
-import { eq, ne } from 'drizzle-orm'
+import { and, eq, ne } from 'drizzle-orm'
 import { z } from 'zod'
 import type { ICategoryDTO } from '../dto/category.schema'
+import { ensureAuthenticated } from '@/infra/helpers/auth'
 
 const pathParamSchema = z.object({
   id: z.string().uuid('Invalid category ID')
@@ -23,19 +23,10 @@ export async function updateCategory(
   request: Request
 ): Promise<AppEither<ICategoryDTO>> {
   try {
-    const session = await auth.api.getSession({
-      headers: request.headers
-    })
+    const sessionResult = await ensureAuthenticated(request)
+    if (isLeft(sessionResult)) return sessionResult
 
-    if (!session) {
-      return left(new UnauthorizedError())
-    }
-
-    const url = new URL(request.url)
-    const pathParts = url.pathname.split('/')
-    const id = pathParts[pathParts.length - 1]
-
-    const parsedParam = pathParamSchema.safeParse({ id })
+    const parsedParam = extractAndValidatePathParam(request, pathParamSchema)
     if (!parsedParam.success) {
       return left(
         new ValidationError(
@@ -43,6 +34,7 @@ export async function updateCategory(
         )
       )
     }
+    const { id } = parsedParam.data
 
     const bodyData = await request.json()
 
@@ -56,20 +48,18 @@ export async function updateCategory(
     }
 
     const existingCategory = await db.query.category.findFirst({
-      where: eq(category.id, parsedParam.data.id)
+      where: eq(category.id, id)
     })
 
     if (!existingCategory) {
       return left(new NotFoundError('Category not found'))
     }
 
-    const slugConflict = await db.query.category.findFirst({
-      where:
-        ne(category.id, parsedParam.data.id) &&
-        eq(category.slug, parsedBody.data.slug)
+    const slugAlreadyUsed = await db.query.category.findFirst({
+      where: and(ne(category.id, id), eq(category.slug, parsedBody.data.slug))
     })
 
-    if (slugConflict) {
+    if (slugAlreadyUsed) {
       return left(new ConflictError('Slug already in use by another category'))
     }
 
@@ -80,7 +70,7 @@ export async function updateCategory(
         slug: parsedBody.data.slug,
         description: parsedBody.data.description
       })
-      .where(eq(category.id, parsedParam.data.id))
+      .where(eq(category.id, id))
       .returning()
 
     return right(updatedCategory)
