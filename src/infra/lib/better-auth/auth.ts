@@ -27,5 +27,12 @@ export const auth = betterAuth({
     maxPasswordLength: 128
   },
   socialProviders: socialProviders[0],
-  plugins: [nextCookies()]
+  plugins: [nextCookies()],
+  user: {
+    additionalFields: {
+      role: {
+        type: 'string'
+      }
+    }
+  }
 })

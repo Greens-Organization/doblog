@@ -1,6 +1,9 @@
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test'
+import { db } from '@/infra/db'
+import { category } from '@/infra/db/schemas/blog'
 import { constants } from '@test/e2e/helpers/constants'
 import { signInAsAdmin } from '@test/e2e/helpers/sign-in-admin'
-import { describe, expect, it } from 'bun:test'
+import { eq } from 'drizzle-orm'
 
 const baseUrl = `${constants.SERVER}${constants.PREFIX}/blog/category`
 
@@ -11,25 +14,32 @@ const mockData = {
 }
 
 describe('Category - Create', () => {
-  it('should create a new category successfully', async () => {
+  beforeAll(async () => {
+    await db.delete(category).where(eq(category.slug, mockData.slug))
+  })
+
+  afterAll(async () => {
+    await db.delete(category).where(eq(category.slug, mockData.slug))
+  })
+  it('e2e: should create a new category successfully', async () => {
     const cookie = await signInAsAdmin()
 
     const response = await fetch(baseUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(cookie ? { cookie } : {})
+        Cookie: cookie ? cookie : ''
       },
       body: JSON.stringify(mockData)
     })
     expect(response.status).toBe(200)
     const json = await response.json()
-    expect(json.value.name).toBe(mockData.name)
-    expect(json.value.slug).toBe(mockData.slug)
-    expect(json.value.description).toBe(mockData.description)
+    expect(json.name).toBe(mockData.name)
+    expect(json.slug).toBe(mockData.slug)
+    expect(json.description).toBe(mockData.description)
   })
 
-  it('should not allow duplicate category slug', async () => {
+  it('e2e: should not allow duplicate category slug', async () => {
     const cookie = await signInAsAdmin()
     const data = {
       name: 'Duplicate Category',
@@ -54,9 +64,9 @@ describe('Category - Create', () => {
       },
       body: JSON.stringify(data)
     })
-    console.log('response.status)', response)
     expect(response.status).toBe(409)
     const json = await response.json()
-    expect(json.error.message).toMatch(/already exists/i)
+
+    expect(json.error).toMatch(/already exists/i)
   })
 })

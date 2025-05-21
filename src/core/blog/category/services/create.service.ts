@@ -21,6 +21,8 @@ export async function createCategory(
     const sessionResult = await ensureAuthenticated(request)
     if (isLeft(sessionResult)) return sessionResult
 
+    console.log(sessionResult)
+
     const isAdmin = ensureIsAdmin(sessionResult.value)
     if (isLeft(isAdmin)) return isAdmin
 
