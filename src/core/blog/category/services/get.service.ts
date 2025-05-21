@@ -1,50 +1,53 @@
 import type { AppEither } from '@/core/error/app-either.protocols'
 import { left, right } from '@/core/error/either'
 import {
-  ConflictError,
   DatabaseError,
-  UnauthorizedError,
+  NotFoundError,
   ValidationError
 } from '@/core/error/errors'
 import { db } from '@/infra/db'
 import { category } from '@/infra/db/schemas/blog'
-import { auth } from '@/infra/lib/better-auth/auth'
 import { eq } from 'drizzle-orm'
+import { z } from 'zod'
+import type { ICategoryDTO } from '../dto/category.schema'
+
+const pathParamSchema = z.object({
+  id: z.string().uuid('Invalid category ID')
+})
 
 export async function getCategory(
   request: Request
-): Promise<AppEither<unknown>> {
-  const bodyData = await request.json()
-
-  if (!bodyData.name || !bodyData.slug) {
-    return left(new ValidationError('Missing name or slug'))
-  }
-
-  const session = await auth.api.getSession({
-    headers: request.headers
-  })
-
-  if (!session) {
-    return left(new UnauthorizedError())
-  }
-
+): Promise<AppEither<ICategoryDTO>> {
   try {
-    const existCategory = await db.query.category.findFirst({
-      where: eq(category.slug, bodyData.slug)
-    })
+    const url = new URL(request.url)
+    const pathParts = url.pathname.split('/')
+    const id = pathParts[pathParts.length - 1]
 
-    if (existCategory) {
-      return left(new ConflictError('Category already exists'))
+    const parsed = pathParamSchema.safeParse({ id })
+
+    if (!parsed.success) {
+      return left(
+        new ValidationError(
+          parsed.error.errors.map((e) => e.message).join(', ')
+        )
+      )
     }
 
-    const data = await db.insert(category).values({
-      name: bodyData.name,
-      slug: bodyData.slug,
-      description: bodyData.description
+    const result = await db.query.category.findFirst({
+      where: eq(category.id, parsed.data.id)
     })
 
-    return right(data)
+    if (!result) {
+      return left(new NotFoundError('Category not found'))
+    }
+
+    return right(result)
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return left(new ValidationError('Invalid category ID'))
+    }
+
+    console.error('DB error in getCategory:', error)
     return left(new DatabaseError())
   }
 }

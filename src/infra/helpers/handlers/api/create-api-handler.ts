@@ -9,7 +9,6 @@ export function createApiHandler<R>(
   return async (request: Request): Promise<Response> => {
     try {
       const result = await handler(request)
-      logger.debug('Handler result:', result)
 
       if (isLeft(result)) {
         const error = result.value as BaseError

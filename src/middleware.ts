@@ -1,6 +1,6 @@
 import { auth } from '@/infra/lib/better-auth/auth'
 import { headers } from 'next/headers'
-import { type NextRequest, NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { apiAuthMiddleware, appAuthMiddleware } from './infra/middleware/auth/'
 
 const prefixApi = '/api/v1'
@@ -12,14 +12,11 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const isApiRoute = pathname.startsWith(prefixApi)
 
-  if (!isApiRoute) {
-    return appAuthMiddleware(request, session)
-  }
   if (isApiRoute) {
     return apiAuthMiddleware(request, session)
   }
 
-  return NextResponse.next()
+  return appAuthMiddleware(request, session)
 }
 
 export const config = {
