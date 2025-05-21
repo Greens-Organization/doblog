@@ -9,6 +9,7 @@ import {
 import { db } from '@/infra/db'
 import { category } from '@/infra/db/schemas/blog'
 import { ensureAuthenticated } from '@/infra/helpers/auth'
+import { ensureIsAdmin } from '@/infra/helpers/auth/ensure-is-admin'
 import { categorySchema } from '@/infra/validations/schemas'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
@@ -19,6 +20,9 @@ export async function createCategory(
   try {
     const sessionResult = await ensureAuthenticated(request)
     if (isLeft(sessionResult)) return sessionResult
+
+    const isAdmin = ensureIsAdmin(sessionResult.value)
+    if (isLeft(isAdmin)) return isAdmin
 
     const bodyData = await request.json()
 

@@ -1,7 +1,7 @@
 import type { Session, User } from 'better-auth'
 import { type NextRequest, NextResponse } from 'next/server'
 
-const protectedRoutes = ['/dashboard']
+const protectedRoutes = ['/blog']
 const authRoutes = ['/sign-in']
 
 export function apiAuthMiddleware(

@@ -10,6 +10,7 @@ import {
 import { db } from '@/infra/db'
 import { category } from '@/infra/db/schemas/blog'
 import { ensureAuthenticated } from '@/infra/helpers/auth'
+import { ensureIsAdmin } from '@/infra/helpers/auth/ensure-is-admin'
 import { extractAndValidatePathParam } from '@/infra/helpers/params'
 import { categorySchema } from '@/infra/validations/schemas'
 import { and, eq, ne } from 'drizzle-orm'
@@ -25,6 +26,9 @@ export async function updateCategory(
   try {
     const sessionResult = await ensureAuthenticated(request)
     if (isLeft(sessionResult)) return sessionResult
+
+    const isAdmin = ensureIsAdmin(sessionResult.value)
+    if (isLeft(isAdmin)) return isAdmin
 
     const parsedParam = extractAndValidatePathParam(request, pathParamSchema)
     if (!parsedParam.success) {
