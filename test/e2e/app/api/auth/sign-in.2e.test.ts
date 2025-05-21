@@ -14,18 +14,7 @@ describe('Auth - Sign In', () => {
         password: env.ADMIN_PASSWORD
       })
     })
-    // const response = await auth.api.signInEmail({
-    //   body: {
-    //     email: env.ADMIN_EMAIL,
-    //     password: env.ADMIN_PASSWORD
-    //   }
-    // })
 
-    expect(response.status).toBe(200) // BAD REQUEST
-    const data = (await response.json()) as any
-
-    // expect(data.error).toBeDefined()
-    // expect(data.error.data.httpStatus).toBe(400)
-    // expect(data.error.message).toContain('invalid_string')
+    expect(response.status).toBe(200)
   })
 })

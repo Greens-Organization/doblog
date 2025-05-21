@@ -1,3 +1,4 @@
+import type { ICategoryDTO } from '@/core/blog/category/dto'
 import type { AppEither } from '@/core/error/app-either.protocols'
 import { isLeft, left, right } from '@/core/error/either'
 import {
@@ -11,7 +12,6 @@ import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { categorySchema } from '@/infra/validations/schemas'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
-import type { ICategoryDTO } from '../dto/category.schema'
 
 export async function createCategory(
   request: Request

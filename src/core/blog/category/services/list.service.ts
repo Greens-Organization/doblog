@@ -1,3 +1,4 @@
+import type { ICategoryDTO } from '@/core/blog/category/dto'
 import type { AppEither } from '@/core/error/app-either.protocols'
 import { left, right } from '@/core/error/either'
 import { DatabaseError, ValidationError } from '@/core/error/errors'
@@ -5,7 +6,6 @@ import { db } from '@/infra/db'
 import { category } from '@/infra/db/schemas/blog'
 import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
-import type { ICategoryDTO } from '../dto/category.schema'
 
 const searchParamsSchema = z.object({
   slug: z.string().optional(),

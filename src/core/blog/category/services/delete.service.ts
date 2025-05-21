@@ -1,3 +1,4 @@
+import type { ICategoryDTO } from '@/core/blog/category/dto'
 import type { AppEither } from '@/core/error/app-either.protocols'
 import { isLeft, left, right } from '@/core/error/either'
 import {
@@ -7,11 +8,10 @@ import {
 } from '@/core/error/errors'
 import { db } from '@/infra/db'
 import { category } from '@/infra/db/schemas/blog'
+import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { extractAndValidatePathParam } from '@/infra/helpers/params'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
-import type { ICategoryDTO } from '../dto/category.schema'
-import { ensureAuthenticated } from '@/infra/helpers/auth'
 
 const pathParamSchema = z.object({
   id: z.string().uuid('Invalid category ID')
