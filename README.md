@@ -24,7 +24,7 @@ Next.js 15 fullstack template with better-auth for authentication and drizzle-or
     - Github
     - Discord
 - Database
-  - Postgres (Neon)
+  - Postgres (Vanilla)
   - ORM: drizzle-orm
 - Next.js API, server actions, and middleware
 

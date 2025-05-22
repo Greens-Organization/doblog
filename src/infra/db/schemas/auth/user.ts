@@ -1,3 +1,4 @@
+import type { InferSelectModel } from 'drizzle-orm'
 import { boolean, pgTable, text } from 'drizzle-orm/pg-core'
 import { createdAt, idPrimaryKey, updatedAt } from '../helpers'
 
@@ -13,3 +14,5 @@ export const user = pgTable('user', {
   createdAt,
   updatedAt
 })
+
+export type DUser = InferSelectModel<typeof user>

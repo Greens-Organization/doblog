@@ -1,5 +1,6 @@
 import { makePasswordHasher } from '@/infra/cryptography/password'
 import { db } from '@/infra/db'
+import { account, session, user, verification } from '@/infra/db/schemas/auth'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { nextCookies } from 'better-auth/next-js'
@@ -7,8 +8,15 @@ import { socialProviders } from './providers'
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
-    provider: 'pg'
+    provider: 'pg',
+    schema: {
+      user,
+      session,
+      account,
+      verification
+    }
   }),
+
   emailAndPassword: {
     enabled: true, // TODO: Add this on env to setup if application use this or socialProviders
     password: {
@@ -19,5 +27,12 @@ export const auth = betterAuth({
     maxPasswordLength: 128
   },
   socialProviders: socialProviders[0],
-  plugins: [nextCookies()]
+  plugins: [nextCookies()],
+  user: {
+    additionalFields: {
+      role: {
+        type: 'string'
+      }
+    }
+  }
 })

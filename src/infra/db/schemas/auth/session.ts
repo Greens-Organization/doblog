@@ -1,3 +1,4 @@
+import type { InferSelectModel } from 'drizzle-orm'
 import { pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { createdAt, idPrimaryKey, updatedAt } from '../helpers'
 import { user } from './user'
@@ -14,3 +15,5 @@ export const session = pgTable('session', {
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' })
 })
+
+export type DSession = InferSelectModel<typeof session>
