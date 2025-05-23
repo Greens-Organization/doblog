@@ -20,7 +20,7 @@ export default async function Page({ params }: PageProps) {
     description:
       'Artigos sobre programação, desenvolvimento web e novas tecnologias'
   }
-
+  const [a] = await Promise.all([new Promise((r) => r({ helo: 'Herll' }))])
   return (
     <section>
       <Header />
