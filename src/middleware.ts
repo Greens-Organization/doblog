@@ -1,28 +1,22 @@
 import { auth } from '@/infra/lib/better-auth/auth'
 import { headers } from 'next/headers'
-import { type NextRequest, NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { apiAuthMiddleware, appAuthMiddleware } from './infra/middleware/auth/'
 
-const protectedRoutes = ['/dashboard']
-const authRoutes = ['/sign-in', '/sign-up']
+const prefixApi = '/api/v1'
 
 export async function middleware(request: NextRequest) {
   const session = await auth.api.getSession({
     headers: await headers()
   })
-
   const { pathname } = request.nextUrl
+  const isApiRoute = pathname.startsWith(prefixApi)
 
-  // If user is not authenticated and trying to access protected route
-  if (!session && protectedRoutes.some((route) => pathname.startsWith(route))) {
-    return NextResponse.redirect(new URL('/sign-in', request.url))
+  if (isApiRoute) {
+    return apiAuthMiddleware(request, session)
   }
 
-  // If user is authenticated but trying to access auth routes
-  if (session && authRoutes.some((route) => pathname.startsWith(route))) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
-  }
-
-  return NextResponse.next()
+  return appAuthMiddleware(request, session)
 }
 
 export const config = {
