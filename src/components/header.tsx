@@ -51,6 +51,7 @@ export function Header() {
           className="text-sm font-medium text-primary hover:text-primary/80 duration-150"
         >
           {isPending ? '' : session?.user.name.split(' ')[0]}
+          {!isPending && session?.user ? '' : 'Login'}
         </Link>
       </div>
     </header>
