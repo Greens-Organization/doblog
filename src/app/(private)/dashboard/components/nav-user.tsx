@@ -17,7 +17,8 @@ import {
   useSidebar
 } from '@/components/ui/sidebar'
 import useTheme from '@/hooks/use-theme'
-import { useSession } from '@/infra/lib/better-auth/auth-client'
+import { signOut, useSession } from '@/infra/lib/better-auth/auth-client'
+import { cn } from '@/infra/lib/utils'
 import {
   BadgeCheck,
   Bell,
@@ -27,10 +28,15 @@ import {
   SunIcon
 } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { toast } from 'sonner'
 
 export function NavUser() {
+  const [signingOut, setSigningOut] = useState(false)
   const { data: session, isPending } = useSession()
   const { toggleTheme } = useTheme()
+  const router = useRouter()
 
   const { isMobile } = useSidebar()
 
@@ -49,7 +55,10 @@ export function NavUser() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className={cn(
+                'data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground',
+                signingOut && 'animate-pulse'
+              )}
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 {/* @ts-ignore */}
@@ -105,11 +114,30 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/sign-in">
-                <LogOut />
-                Log out
-              </Link>
+            <DropdownMenuItem
+              onClick={() =>
+                signOut({
+                  fetchOptions: {
+                    onRequest: () => {
+                      setSigningOut(true)
+                      toast.loading('Signing out...')
+                    },
+                    onSuccess: () => {
+                      setSigningOut(false)
+                      toast.success('Signed out successfully')
+                      toast.dismiss()
+                      router.push('/')
+                    },
+                    onError: () => {
+                      setSigningOut(false)
+                      toast.error('Failed to sign out')
+                    }
+                  }
+                })
+              }
+            >
+              <LogOut />
+              Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
