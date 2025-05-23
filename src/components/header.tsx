@@ -1,3 +1,5 @@
+'use client'
+import { useSession } from '@/infra/lib/better-auth/auth-client'
 import Link from 'next/link'
 
 const links = [
@@ -7,6 +9,8 @@ const links = [
 ] as const
 
 export function Header() {
+  const { data: session, isPending } = useSession()
+
   return (
     <header className="border-b">
       <div className="container px-3 flex justify-between mx-auto h-16 items-center">
@@ -46,7 +50,7 @@ export function Header() {
           href="/dashboard"
           className="text-sm font-medium text-primary hover:text-primary/80 duration-150"
         >
-          Admin
+          {isPending ? '' : session?.user.name.split(' ')[0]}
         </Link>
       </div>
     </header>
