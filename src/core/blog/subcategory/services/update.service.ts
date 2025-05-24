@@ -96,6 +96,7 @@ export async function updateSubcategory(
       })
       .where(eq(category.id, id))
       .returning()
+    console.log('updatedCategory', updatedCategory)
 
     return right({ ...updatedCategory, category: existingSubcategory.category })
   } catch (error) {
