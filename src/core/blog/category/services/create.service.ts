@@ -10,9 +10,10 @@ import { db } from '@/infra/db'
 import { category } from '@/infra/db/schemas/blog'
 import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { ensureIsAdmin } from '@/infra/helpers/auth/ensure-is-admin'
-import { categorySchema } from '@/infra/validations/schemas'
+import { logger } from '@/infra/lib/logger/logger-server'
+import { createCategorySchema } from '@/infra/validations/schemas/category'
 import { eq } from 'drizzle-orm'
-import { z } from 'zod'
+import { z } from 'zod/v4'
 
 export async function createCategory(
   request: Request
@@ -21,18 +22,16 @@ export async function createCategory(
     const sessionResult = await ensureAuthenticated(request)
     if (isLeft(sessionResult)) return sessionResult
 
-    console.log(sessionResult)
-
     const isAdmin = ensureIsAdmin(sessionResult.value)
     if (isLeft(isAdmin)) return isAdmin
 
     const bodyData = await request.json()
 
-    const parsed = categorySchema().safeParse(bodyData)
+    const parsed = createCategorySchema().safeParse(bodyData)
     if (!parsed.success) {
       return left(
         new ValidationError(
-          parsed.error.errors.map((e) => e.message).join(', ')
+          parsed.error.issues.map((e) => e.message).join(', ')
         )
       )
     }
@@ -58,11 +57,11 @@ export async function createCategory(
   } catch (error) {
     if (error instanceof z.ZodError) {
       return left(
-        new ValidationError(error.errors.map((e) => e.message).join(', '))
+        new ValidationError(error.issues.map((e) => e.message).join(', '))
       )
     }
 
-    console.error('Unhandled error in createCategory:', error)
+    logger.error('Unhandled error in createCategory:', error)
     return left(new DatabaseError())
   }
 }

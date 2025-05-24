@@ -12,11 +12,11 @@ import { ensureIsAdmin } from '@/infra/helpers/auth/ensure-is-admin'
 import { extractAndValidatePathParam } from '@/infra/helpers/params'
 import { logger } from '@/infra/lib/logger/logger-server'
 import { eq } from 'drizzle-orm'
-import { z } from 'zod'
+import { z } from 'zod/v4'
 import type { ISubcategoryDTO } from '../dto'
 
 const pathParamSchema = z.object({
-  id: z.string().uuid('Invalid subcategory ID')
+  id: z.uuid('Invalid subcategory ID')
 })
 
 export async function deleteSubcategory(
@@ -33,7 +33,7 @@ export async function deleteSubcategory(
     if (!parsedParam.success) {
       return left(
         new ValidationError(
-          parsedParam.error.errors.map((e) => e.message).join(', ')
+          parsedParam.error.issues.map((e) => e.message).join(', ')
         )
       )
     }
@@ -72,7 +72,7 @@ export async function deleteSubcategory(
   } catch (error) {
     if (error instanceof z.ZodError) {
       return left(
-        new ValidationError(error.errors.map((e) => e.message).join(', '))
+        new ValidationError(error.issues.map((e) => e.message).join(', '))
       )
     }
 

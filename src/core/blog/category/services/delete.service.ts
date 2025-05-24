@@ -11,11 +11,12 @@ import { category } from '@/infra/db/schemas/blog'
 import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { ensureIsAdmin } from '@/infra/helpers/auth/ensure-is-admin'
 import { extractAndValidatePathParam } from '@/infra/helpers/params'
+import { logger } from '@/infra/lib/logger/logger-server'
 import { eq } from 'drizzle-orm'
-import { z } from 'zod'
+import { z } from 'zod/v4'
 
 const pathParamSchema = z.object({
-  id: z.string().uuid('Invalid category ID')
+  id: z.uuid('Invalid category ID')
 })
 
 export async function deleteCategory(
@@ -32,7 +33,7 @@ export async function deleteCategory(
     if (!parsedParam.success) {
       return left(
         new ValidationError(
-          parsedParam.error.errors.map((e) => e.message).join(', ')
+          parsedParam.error.issues.map((e) => e.message).join(', ')
         )
       )
     }
@@ -58,11 +59,11 @@ export async function deleteCategory(
   } catch (error) {
     if (error instanceof z.ZodError) {
       return left(
-        new ValidationError(error.errors.map((e) => e.message).join(', '))
+        new ValidationError(error.issues.map((e) => e.message).join(', '))
       )
     }
 
-    console.error('Unhandled error in deleteCategory:', error)
+    logger.error('Unhandled error in deleteCategory:', error)
     return left(new DatabaseError())
   }
 }

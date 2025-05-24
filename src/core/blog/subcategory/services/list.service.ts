@@ -5,7 +5,7 @@ import { db } from '@/infra/db'
 import { category, subcategory } from '@/infra/db/schemas/blog'
 import { logger } from '@/infra/lib/logger/logger-server'
 import { and, eq } from 'drizzle-orm'
-import { z } from 'zod'
+import { z } from 'zod/v4'
 import type { ISubcategoryDTO } from '../dto'
 
 const searchParamsSchema = z.object({

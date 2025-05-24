@@ -12,12 +12,13 @@ import { category } from '@/infra/db/schemas/blog'
 import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { ensureIsAdmin } from '@/infra/helpers/auth/ensure-is-admin'
 import { extractAndValidatePathParam } from '@/infra/helpers/params'
-import { categorySchema } from '@/infra/validations/schemas'
+import { updateCategorySchema } from '@/infra/validations/schemas/category'
+import { logger } from 'better-auth'
 import { and, eq, ne } from 'drizzle-orm'
-import { z } from 'zod'
+import { z } from 'zod/v4'
 
 const pathParamSchema = z.object({
-  id: z.string().uuid('Invalid category ID')
+  id: z.uuid('Invalid category ID')
 })
 
 export async function updateCategory(
@@ -34,7 +35,7 @@ export async function updateCategory(
     if (!parsedParam.success) {
       return left(
         new ValidationError(
-          parsedParam.error.errors.map((e) => e.message).join(', ')
+          parsedParam.error.issues.map((e) => e.message).join(', ')
         )
       )
     }
@@ -42,11 +43,11 @@ export async function updateCategory(
 
     const bodyData = await request.json()
 
-    const parsedBody = categorySchema().safeParse(bodyData)
+    const parsedBody = updateCategorySchema().safeParse(bodyData)
     if (!parsedBody.success) {
       return left(
         new ValidationError(
-          parsedBody.error.errors.map((e) => e.message).join(', ')
+          parsedBody.error.issues.map((e) => e.message).join(', ')
         )
       )
     }
@@ -60,7 +61,7 @@ export async function updateCategory(
     }
 
     const slugAlreadyUsed = await db.query.category.findFirst({
-      where: and(ne(category.id, id), eq(category.slug, parsedBody.data.slug))
+      where: and(ne(category.id, id), eq(category.slug, parsedBody.data.slug!))
     })
 
     if (slugAlreadyUsed) {
@@ -81,11 +82,11 @@ export async function updateCategory(
   } catch (error) {
     if (error instanceof z.ZodError) {
       return left(
-        new ValidationError(error.errors.map((e) => e.message).join(', '))
+        new ValidationError(error.issues.map((e) => e.message).join(', '))
       )
     }
 
-    console.error('Unhandled error in updateCategory:', error)
+    logger.error('Unhandled error in updateCategory:', error)
     return left(new DatabaseError())
   }
 }

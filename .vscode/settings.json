@@ -24,5 +24,8 @@
   },
   "editor.formatOnSave": true,
   "eslint.enable": false,
-  "npm.packageManager": "bun"
+  "npm.packageManager": "bun",
+  "cSpell.words": [
+    "stringbool"
+  ]
 }

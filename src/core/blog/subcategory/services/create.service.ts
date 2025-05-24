@@ -12,7 +12,7 @@ import { ensureIsAdmin } from '@/infra/helpers/auth/ensure-is-admin'
 import { logger } from '@/infra/lib/logger/logger-server'
 import { createSubcategorySchema } from '@/infra/validations/schemas/subcategory'
 import { eq } from 'drizzle-orm'
-import { z } from 'zod'
+import { z } from 'zod/v4'
 import type { ISubcategoryDTO } from '../dto'
 
 export async function createSubcategory(
@@ -39,7 +39,7 @@ export async function createSubcategory(
     if (!parsed.success) {
       return left(
         new ValidationError(
-          parsed.error.errors.map((e) => e.message).join(', ')
+          parsed.error.issues.map((e) => e.message).join(', ')
         )
       )
     }
@@ -68,7 +68,7 @@ export async function createSubcategory(
   } catch (error) {
     if (error instanceof z.ZodError) {
       return left(
-        new ValidationError(error.errors.map((e) => e.message).join(', '))
+        new ValidationError(error.issues.map((e) => e.message).join(', '))
       )
     }
 

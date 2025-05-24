@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'bun:test'
 import { constants } from '@test/e2e/helpers/constants'
 import { signInAsAdmin } from '@test/e2e/helpers/sign-in-admin'
+import { describe, expect, it } from 'bun:test'
 import { createCategory } from './helper/create-category'
 
 const baseUrl = `${constants.SERVER}${constants.PREFIX}/blog/category`

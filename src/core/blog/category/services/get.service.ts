@@ -8,11 +8,12 @@ import {
 } from '@/core/error/errors'
 import { db } from '@/infra/db'
 import { category } from '@/infra/db/schemas/blog'
+import { logger } from '@/infra/lib/logger/logger-server'
 import { eq } from 'drizzle-orm'
-import { z } from 'zod'
+import { z } from 'zod/v4'
 
 const pathParamSchema = z.object({
-  id: z.string().uuid('Invalid category ID')
+  id: z.uuid('Invalid category ID')
 })
 
 export async function getCategory(
@@ -28,7 +29,7 @@ export async function getCategory(
     if (!parsed.success) {
       return left(
         new ValidationError(
-          parsed.error.errors.map((e) => e.message).join(', ')
+          parsed.error.issues.map((e) => e.message).join(', ')
         )
       )
     }
@@ -47,7 +48,7 @@ export async function getCategory(
       return left(new ValidationError('Invalid category ID'))
     }
 
-    console.error('DB error in getCategory:', error)
+    logger.error('DB error in getCategory:', error)
     return left(new DatabaseError())
   }
 }
