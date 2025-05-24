@@ -1,0 +1,78 @@
+import type { AppEither } from '@/core/error/app-either.protocols'
+import { isLeft, left, right } from '@/core/error/either'
+import {
+  ConflictError,
+  DatabaseError,
+  ValidationError
+} from '@/core/error/errors'
+import { db } from '@/infra/db'
+import { category, subcategory } from '@/infra/db/schemas/blog'
+import { ensureAuthenticated } from '@/infra/helpers/auth'
+import { ensureIsAdmin } from '@/infra/helpers/auth/ensure-is-admin'
+import { logger } from '@/infra/lib/logger/logger-server'
+import { createSubcategorySchema } from '@/infra/validations/schemas/subcategory'
+import { eq } from 'drizzle-orm'
+import { z } from 'zod'
+import type { ISubcategoryDTO } from '../dto'
+
+export async function createSubcategory(
+  request: Request
+): Promise<AppEither<ISubcategoryDTO>> {
+  try {
+    const sessionResult = await ensureAuthenticated(request)
+    if (isLeft(sessionResult)) return sessionResult
+
+    const isAdmin = ensureIsAdmin(sessionResult.value)
+    if (isLeft(isAdmin)) return isAdmin
+
+    const bodyData = await request.json()
+
+    const categoryData = await db.query.category.findFirst({
+      where: eq(category.slug, bodyData.category_slug)
+    })
+
+    if (!categoryData) {
+      return left(new ValidationError('Category not found'))
+    }
+
+    const parsed = createSubcategorySchema().safeParse(bodyData)
+    if (!parsed.success) {
+      return left(
+        new ValidationError(
+          parsed.error.errors.map((e) => e.message).join(', ')
+        )
+      )
+    }
+
+    const existSubcategory = await db.query.subcategory.findFirst({
+      where: eq(category.slug, parsed.data.slug)
+    })
+
+    if (existSubcategory) {
+      return left(new ConflictError('Subcategory already exists'))
+    }
+
+    const [{ categoryId, ...data }] = await db
+      .insert(subcategory)
+      .values({
+        categoryId: categoryData.id,
+        name: parsed.data.name,
+        slug: parsed.data.slug,
+        description: parsed.data.description
+      })
+      .returning()
+
+    const { createdAt, updatedAt, ...categoryDataFiltered } = categoryData
+
+    return right({ ...data, category: categoryDataFiltered })
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return left(
+        new ValidationError(error.errors.map((e) => e.message).join(', '))
+      )
+    }
+
+    logger.error('Unhandled error in createCategory:', error)
+    return left(new DatabaseError())
+  }
+}
