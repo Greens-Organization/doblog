@@ -77,7 +77,7 @@ export async function updateSubcategory(
       return left(new NotFoundError('Subcategory not found'))
     }
 
-    const slugAlreadyUsed = await db.query.category.findFirst({
+    const slugAlreadyUsed = await db.query.subcategory.findFirst({
       where: and(ne(subcategory.id, id), eq(subcategory.slug, parsedBody.data.slug!))
     })
 
