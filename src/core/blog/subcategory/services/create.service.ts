@@ -72,7 +72,7 @@ export async function createSubcategory(
       )
     }
 
-    logger.error('Unhandled error in createCategory:', error)
+    logger.error('Unhandled error in createSubcategory:', error)
     return left(new DatabaseError())
   }
 }
