@@ -1,8 +1,8 @@
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test'
 import { db } from '@/infra/db'
 import { category } from '@/infra/db/schemas/blog'
 import { constants } from '@test/e2e/helpers/constants'
 import { signInAsAdmin } from '@test/e2e/helpers/sign-in-admin'
-import { afterAll, beforeAll, describe, expect, it } from 'bun:test'
 import { eq } from 'drizzle-orm'
 
 const baseUrl = `${constants.SERVER}${constants.PREFIX}/blog/category`

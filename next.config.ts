@@ -1,5 +1,5 @@
-import { isDevelopment } from '@/env';
-import type { NextConfig } from 'next';
+import { isDevelopment } from '@/env'
+import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   experimental: {
@@ -11,14 +11,14 @@ const nextConfig: NextConfig = {
     }
   },
   webpack(
-    config,
+    config
     // { buildId, dev, isServer, defaultLoaders, nextRuntime, webpack },
   ) {
     config.resolve.fallback = {
       ...config.resolve.fallback,
 
-      fs: false, // the solution
-    };
+      fs: false // the solution
+    }
 
     // NOTE: Must use this instead of serverExternalPackages | serverComponentsExternalPackages
     // because node:crypto for some reason only works below.
@@ -32,10 +32,10 @@ const nextConfig: NextConfig = {
       'thread-stream': 'thread-stream',
       'pino-worker': 'pino-worker',
       'pino-file': 'pino-file',
-      'pino-pretty': 'pino-pretty',
-    });
-    return config;
-  },
+      'pino-pretty': 'pino-pretty'
+    })
+    return config
+  }
 }
 
 export default nextConfig
