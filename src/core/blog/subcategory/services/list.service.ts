@@ -72,7 +72,7 @@ export async function listSubcategories(
       return left(new ValidationError('Invalid query parameters'))
     }
 
-    logger.error('DB error in getCategory:', error)
+    logger.error('DB error in listSubcategories:', error)
     return left(new DatabaseError())
   }
 }
