@@ -1,4 +1,3 @@
-import type { ICategoryDTO } from '@/core/blog/category/dto'
 import type { AppEither } from '@/core/error/app-either.protocols'
 import { left, right } from '@/core/error/either'
 import {
@@ -7,18 +6,19 @@ import {
   ValidationError
 } from '@/core/error/errors'
 import { db } from '@/infra/db'
-import { category } from '@/infra/db/schemas/blog'
+import { subcategory } from '@/infra/db/schemas/blog'
 import { logger } from '@/infra/lib/logger/logger-server'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod/v4'
+import type { ISubcategoryDTO } from '../dto'
 
 const pathParamSchema = z.object({
   id: z.uuid('Invalid category ID')
 })
 
-export async function getCategory(
+export async function getSubcategory(
   request: Request
-): Promise<AppEither<ICategoryDTO>> {
+): Promise<AppEither<ISubcategoryDTO>> {
   try {
     const url = new URL(request.url)
     const pathParts = url.pathname.split('/')
@@ -34,21 +34,34 @@ export async function getCategory(
       )
     }
 
-    const result = await db.query.category.findFirst({
-      where: eq(category.id, parsed.data.id)
+    const result = await db.query.subcategory.findFirst({
+      where: eq(subcategory.id, parsed.data.id),
+      columns: {
+        categoryId: false
+      },
+      with: {
+        category: {
+          columns: {
+            id: true,
+            name: true,
+            slug: true,
+            description: true
+          }
+        }
+      }
     })
 
     if (!result) {
-      return left(new NotFoundError('Category not found'))
+      return left(new NotFoundError('Subcategory not found'))
     }
 
     return right(result)
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return left(new ValidationError('Invalid category ID'))
+      return left(new ValidationError('Invalid subcategory ID'))
     }
 
-    logger.error('DB error in getCategory:', error)
+    logger.error('DB error in get subcategory:', error)
     return left(new DatabaseError())
   }
 }

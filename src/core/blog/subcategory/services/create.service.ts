@@ -1,4 +1,3 @@
-import type { ICategoryDTO } from '@/core/blog/category/dto'
 import type { AppEither } from '@/core/error/app-either.protocols'
 import { isLeft, left, right } from '@/core/error/either'
 import {
@@ -7,17 +6,18 @@ import {
   ValidationError
 } from '@/core/error/errors'
 import { db } from '@/infra/db'
-import { category } from '@/infra/db/schemas/blog'
+import { category, subcategory } from '@/infra/db/schemas/blog'
 import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { ensureIsAdmin } from '@/infra/helpers/auth/ensure-is-admin'
 import { logger } from '@/infra/lib/logger/logger-server'
-import { createCategorySchema } from '@/infra/validations/schemas/category'
+import { createSubcategorySchema } from '@/infra/validations/schemas/subcategory'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod/v4'
+import type { ISubcategoryDTO } from '../dto'
 
-export async function createCategory(
+export async function createSubcategory(
   request: Request
-): Promise<AppEither<ICategoryDTO>> {
+): Promise<AppEither<ISubcategoryDTO>> {
   try {
     const sessionResult = await ensureAuthenticated(request)
     if (isLeft(sessionResult)) return sessionResult
@@ -27,7 +27,15 @@ export async function createCategory(
 
     const bodyData = await request.json()
 
-    const parsed = createCategorySchema().safeParse(bodyData)
+    const categoryData = await db.query.category.findFirst({
+      where: eq(category.slug, bodyData.category_slug)
+    })
+
+    if (!categoryData) {
+      return left(new ValidationError('Category not found'))
+    }
+
+    const parsed = createSubcategorySchema().safeParse(bodyData)
     if (!parsed.success) {
       return left(
         new ValidationError(
@@ -36,24 +44,27 @@ export async function createCategory(
       )
     }
 
-    const existCategory = await db.query.category.findFirst({
-      where: eq(category.slug, parsed.data.slug)
+    const existSubcategory = await db.query.subcategory.findFirst({
+      where: eq(subcategory.slug, parsed.data.slug)
     })
 
-    if (existCategory) {
-      return left(new ConflictError('Category already exists'))
+    if (existSubcategory) {
+      return left(new ConflictError('Subcategory already exists'))
     }
 
-    const [data] = await db
-      .insert(category)
+    const [{ categoryId, ...data }] = await db
+      .insert(subcategory)
       .values({
+        categoryId: categoryData.id,
         name: parsed.data.name,
         slug: parsed.data.slug,
         description: parsed.data.description
       })
       .returning()
 
-    return right(data)
+    const { createdAt, updatedAt, ...categoryDataFiltered } = categoryData
+
+    return right({ ...data, category: categoryDataFiltered })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return left(
@@ -61,7 +72,7 @@ export async function createCategory(
       )
     }
 
-    logger.error('Unhandled error in createCategory:', error)
+    logger.error('Unhandled error in createSubcategory:', error)
     return left(new DatabaseError())
   }
 }

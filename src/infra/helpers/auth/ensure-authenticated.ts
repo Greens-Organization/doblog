@@ -10,7 +10,7 @@ export async function ensureAuthenticated(
     headers: request.headers
   })
   if (!session) {
-    return left(new UnauthorizedError())
+    return left(new UnauthorizedError('Session not found'))
   }
   return right(session as IAuthSessionDTO)
 }

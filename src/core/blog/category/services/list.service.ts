@@ -4,8 +4,9 @@ import { left, right } from '@/core/error/either'
 import { DatabaseError, ValidationError } from '@/core/error/errors'
 import { db } from '@/infra/db'
 import { category } from '@/infra/db/schemas/blog'
+import { logger } from '@/infra/lib/logger/logger-server'
 import { and, eq } from 'drizzle-orm'
-import { z } from 'zod'
+import { z } from 'zod/v4'
 
 const searchParamsSchema = z.object({
   slug: z.string().optional(),
@@ -40,10 +41,12 @@ export async function listCategories(
     return right(result)
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return left(new ValidationError('Invalid query parameters'))
+      return left(
+        new ValidationError(error.issues.map((e) => e.message).join(', '))
+      )
     }
 
-    console.error('DB error in getCategory:', error)
+    logger.error('DB error in getCategory:', error)
     return left(new DatabaseError())
   }
 }
