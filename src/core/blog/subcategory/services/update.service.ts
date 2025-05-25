@@ -7,7 +7,7 @@ import {
   ValidationError
 } from '@/core/error/errors'
 import { db } from '@/infra/db'
-import { category } from '@/infra/db/schemas/blog'
+import { subcategory } from '@/infra/db/schemas/blog'
 import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { ensureIsAdmin } from '@/infra/helpers/auth/ensure-is-admin'
 import { extractAndValidatePathParam } from '@/infra/helpers/params'
@@ -57,7 +57,7 @@ export async function updateSubcategory(
     }
 
     const existingSubcategory = await db.query.subcategory.findFirst({
-      where: eq(category.id, id),
+      where: eq(subcategory.id, id),
       columns: {
         categoryId: false
       },
@@ -78,7 +78,7 @@ export async function updateSubcategory(
     }
 
     const slugAlreadyUsed = await db.query.category.findFirst({
-      where: and(ne(category.id, id), eq(category.slug, parsedBody.data.slug!))
+      where: and(ne(subcategory.id, id), eq(subcategory.slug, parsedBody.data.slug!))
     })
 
     if (slugAlreadyUsed) {
@@ -87,14 +87,16 @@ export async function updateSubcategory(
       )
     }
 
+    const updatedSubcategoryData = {
+      name: parsedBody.data.name,
+      slug: parsedBody.data.slug,
+      description: parsedBody.data.description
+    }
+
     const [updatedCategory] = await db
-      .update(category)
-      .set({
-        name: parsedBody.data.name,
-        slug: parsedBody.data.slug,
-        description: parsedBody.data.description
-      })
-      .where(eq(category.id, id))
+      .update(subcategory)
+      .set(updatedSubcategoryData)
+      .where(eq(subcategory.id, id))
       .returning()
     console.log('updatedCategory', updatedCategory)
 
@@ -110,3 +112,4 @@ export async function updateSubcategory(
     return left(new DatabaseError())
   }
 }
+
