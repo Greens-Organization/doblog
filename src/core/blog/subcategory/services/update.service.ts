@@ -1,4 +1,3 @@
-import type { ICategoryDTO } from '@/core/blog/category/dto'
 import type { AppEither } from '@/core/error/app-either.protocols'
 import { isLeft, left, right } from '@/core/error/either'
 import {
@@ -8,7 +7,7 @@ import {
   ValidationError
 } from '@/core/error/errors'
 import { db } from '@/infra/db'
-import { category } from '@/infra/db/schemas/blog'
+import { subcategory } from '@/infra/db/schemas/blog'
 import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { ensureIsAdmin } from '@/infra/helpers/auth/ensure-is-admin'
 import { extractAndValidatePathParam } from '@/infra/helpers/params'
@@ -16,14 +15,15 @@ import { updateCategorySchema } from '@/infra/validations/schemas/category'
 import { logger } from 'better-auth'
 import { and, eq, ne } from 'drizzle-orm'
 import { z } from 'zod/v4'
+import type { ISubcategoryDTO } from '../dto'
 
 const pathParamSchema = z.object({
   id: z.uuid('Invalid category ID')
 })
 
-export async function updateCategory(
+export async function updateSubcategory(
   request: Request
-): Promise<AppEither<ICategoryDTO>> {
+): Promise<AppEither<ISubcategoryDTO>> {
   try {
     const sessionResult = await ensureAuthenticated(request)
     if (isLeft(sessionResult)) return sessionResult
@@ -35,7 +35,9 @@ export async function updateCategory(
     if (!parsedParam.success) {
       return left(
         new ValidationError(
-          parsedParam.error.issues.map((e) => e.message).join(', ')
+          parsedParam.error.issues
+            .map((e: { message: string }) => e.message)
+            .join(', ')
         )
       )
     }
@@ -47,38 +49,58 @@ export async function updateCategory(
     if (!parsedBody.success) {
       return left(
         new ValidationError(
-          parsedBody.error.issues.map((e) => e.message).join(', ')
+          parsedBody.error.issues
+            .map((e: { message: string }) => e.message)
+            .join(', ')
         )
       )
     }
 
-    const existingCategory = await db.query.category.findFirst({
-      where: eq(category.id, id)
+    const existingSubcategory = await db.query.subcategory.findFirst({
+      where: eq(subcategory.id, id),
+      columns: {
+        categoryId: false
+      },
+      with: {
+        category: {
+          columns: {
+            id: true,
+            name: true,
+            slug: true,
+            description: true
+          }
+        }
+      }
     })
 
-    if (!existingCategory) {
-      return left(new NotFoundError('Category not found'))
+    if (!existingSubcategory) {
+      return left(new NotFoundError('Subcategory not found'))
     }
 
-    const slugAlreadyUsed = await db.query.category.findFirst({
-      where: and(ne(category.id, id), eq(category.slug, parsedBody.data.slug!))
+    const slugAlreadyUsed = await db.query.subcategory.findFirst({
+      where: and(ne(subcategory.id, id), eq(subcategory.slug, parsedBody.data.slug!))
     })
 
     if (slugAlreadyUsed) {
-      return left(new ConflictError('Slug already in use by another category'))
+      return left(
+        new ConflictError('Slug already in use by another subcategory')
+      )
+    }
+
+    const updatedSubcategoryData = {
+      name: parsedBody.data.name,
+      slug: parsedBody.data.slug,
+      description: parsedBody.data.description
     }
 
     const [updatedCategory] = await db
-      .update(category)
-      .set({
-        name: parsedBody.data.name,
-        slug: parsedBody.data.slug,
-        description: parsedBody.data.description
-      })
-      .where(eq(category.id, id))
+      .update(subcategory)
+      .set(updatedSubcategoryData)
+      .where(eq(subcategory.id, id))
       .returning()
+    logger.debug('Updated subcategory data:', updatedCategory)
 
-    return right(updatedCategory)
+    return right({ ...updatedCategory, category: existingSubcategory.category })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return left(
@@ -90,3 +112,4 @@ export async function updateCategory(
     return left(new DatabaseError())
   }
 }
+

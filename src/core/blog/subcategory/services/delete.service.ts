@@ -1,4 +1,3 @@
-import type { ICategoryDTO } from '@/core/blog/category/dto'
 import type { AppEither } from '@/core/error/app-either.protocols'
 import { isLeft, left, right } from '@/core/error/either'
 import {
@@ -7,21 +6,22 @@ import {
   ValidationError
 } from '@/core/error/errors'
 import { db } from '@/infra/db'
-import { category } from '@/infra/db/schemas/blog'
+import { subcategory } from '@/infra/db/schemas/blog'
 import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { ensureIsAdmin } from '@/infra/helpers/auth/ensure-is-admin'
 import { extractAndValidatePathParam } from '@/infra/helpers/params'
 import { logger } from '@/infra/lib/logger/logger-server'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod/v4'
+import type { ISubcategoryDTO } from '../dto'
 
 const pathParamSchema = z.object({
-  id: z.uuid('Invalid category ID')
+  id: z.uuid('Invalid subcategory ID')
 })
 
-export async function deleteCategory(
+export async function deleteSubcategory(
   request: Request
-): Promise<AppEither<{ message: string; deleted: ICategoryDTO }>> {
+): Promise<AppEither<{ message: string; deleted: ISubcategoryDTO }>> {
   try {
     const sessionResult = await ensureAuthenticated(request)
     if (isLeft(sessionResult)) return sessionResult
@@ -39,22 +39,35 @@ export async function deleteCategory(
     }
     const { id } = parsedParam.data
 
-    const existingCategory = await db.query.category.findFirst({
-      where: eq(category.id, id)
+    const existingSubcategory = await db.query.subcategory.findFirst({
+      where: eq(subcategory.id, id),
+      columns: {
+        categoryId: false
+      },
+      with: {
+        category: {
+          columns: {
+            id: true,
+            name: true,
+            slug: true,
+            description: true
+          }
+        }
+      }
     })
 
-    if (!existingCategory) {
-      return left(new NotFoundError('Category not found'))
+    if (!existingSubcategory) {
+      return left(new NotFoundError('Subcategory not found'))
     }
 
-    const [deletedCategory] = await db
-      .delete(category)
-      .where(eq(category.id, id))
+    const [{ categoryId, ...deletedSubcategory }] = await db
+      .delete(subcategory)
+      .where(eq(subcategory.id, id))
       .returning()
 
     return right({
-      message: 'Category successfully deleted',
-      deleted: deletedCategory
+      message: 'Subcategory successfully deleted',
+      deleted: { ...deletedSubcategory, category: existingSubcategory.category }
     })
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -63,7 +76,7 @@ export async function deleteCategory(
       )
     }
 
-    logger.error('Unhandled error in deleteCategory:', error)
+    logger.error('Unhandled error in delete subcategory:', error)
     return left(new DatabaseError())
   }
 }

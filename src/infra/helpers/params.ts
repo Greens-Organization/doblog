@@ -1,4 +1,4 @@
-import type { z } from 'zod'
+import type { z } from 'zod/v4'
 
 type ValidationResult<T> =
   | { success: true; data: T }
