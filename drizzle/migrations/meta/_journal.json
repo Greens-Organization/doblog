@@ -8,6 +8,13 @@
       "when": 1747843598241,
       "tag": "0000_steep_praxagora",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1748386342015,
+      "tag": "0001_gigantic_hellfire_club",
+      "breakpoints": true
     }
   ]
 }
