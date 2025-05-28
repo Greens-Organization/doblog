@@ -78,7 +78,10 @@ export async function updateSubcategory(
     }
 
     const slugAlreadyUsed = await db.query.subcategory.findFirst({
-      where: and(ne(subcategory.id, id), eq(subcategory.slug, parsedBody.data.slug!))
+      where: and(
+        ne(subcategory.id, id),
+        eq(subcategory.slug, parsedBody.data.slug!)
+      )
     })
 
     if (slugAlreadyUsed) {
@@ -112,4 +115,3 @@ export async function updateSubcategory(
     return left(new DatabaseError())
   }
 }
-
