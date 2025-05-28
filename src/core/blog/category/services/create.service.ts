@@ -7,7 +7,7 @@ import {
   ValidationError
 } from '@/core/error/errors'
 import { db } from '@/infra/db'
-import { category } from '@/infra/db/schemas/blog'
+import { category, subcategory } from '@/infra/db/schemas/blog'
 import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { ensureIsAdmin } from '@/infra/helpers/auth/ensure-is-admin'
 import { logger } from '@/infra/lib/logger/logger-server'
@@ -50,6 +50,17 @@ export async function createCategory(
         name: parsed.data.name,
         slug: parsed.data.slug,
         description: parsed.data.description
+      })
+      .returning()
+
+    // Default Subcategory
+    const [defaultSubCategory] = await db
+      .insert(subcategory)
+      .values({
+        categoryId: data.id,
+        name: `${parsed.data.name} Default Subcategory`,
+        slug: `${parsed.data.slug}-default`,
+        isDefault: true
       })
       .returning()
 
