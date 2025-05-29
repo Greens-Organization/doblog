@@ -35,22 +35,11 @@ export async function updateCategory(
     if (!parsedParam.success) {
       return left(
         new ValidationError(
-          parsedParam.error.issues.map((e) => e.message).join(', ')
+          parsedParam.error.issues.map((e) => e.message).join('; ')
         )
       )
     }
     const { id } = parsedParam.data
-
-    const bodyData = await request.json()
-
-    const parsedBody = updateCategorySchema().safeParse(bodyData)
-    if (!parsedBody.success) {
-      return left(
-        new ValidationError(
-          parsedBody.error.issues.map((e) => e.message).join(', ')
-        )
-      )
-    }
 
     const existingCategory = await db.query.category.findFirst({
       where: eq(category.id, id)
@@ -58,6 +47,17 @@ export async function updateCategory(
 
     if (!existingCategory) {
       return left(new NotFoundError('Category not found'))
+    }
+
+    const bodyData = await request.json()
+
+    const parsedBody = updateCategorySchema().safeParse(bodyData)
+    if (!parsedBody.success) {
+      return left(
+        new ValidationError(
+          parsedBody.error.issues.map((e) => e.message).join('; ')
+        )
+      )
     }
 
     const slugAlreadyUsed = await db.query.category.findFirst({
@@ -82,7 +82,7 @@ export async function updateCategory(
   } catch (error) {
     if (error instanceof z.ZodError) {
       return left(
-        new ValidationError(error.issues.map((e) => e.message).join(', '))
+        new ValidationError(error.issues.map((e) => e.message).join('; '))
       )
     }
 

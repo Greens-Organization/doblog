@@ -3,6 +3,7 @@ import { isLeft, left, right } from '@/core/error/either'
 import {
   ConflictError,
   DatabaseError,
+  NotFoundError,
   UnauthorizedError,
   ValidationError
 } from '@/core/error/errors'
@@ -10,6 +11,7 @@ import { db } from '@/infra/db'
 import { category, post, subcategory } from '@/infra/db/schemas/blog'
 import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { AccessHandler } from '@/infra/helpers/handlers/access-handler'
+import { extractAndValidatePathParam } from '@/infra/helpers/params'
 import { logger } from '@/infra/lib/logger/logger-server'
 import { createPostSchema } from '@/infra/validations/schemas/post'
 import { eq } from 'drizzle-orm'
@@ -17,7 +19,11 @@ import { z } from 'zod/v4'
 import { UserRole } from '../../user/dto'
 import type { IPostDTO } from '../dto'
 
-export async function createPost(
+const pathParamSchema = z.object({
+  id: z.uuid('Invalid Post ID')
+})
+
+export async function updatePost(
   request: Request
 ): Promise<AppEither<IPostDTO>> {
   try {
@@ -38,6 +44,26 @@ export async function createPost(
     }
     // TODO: Add a check for the user's permissions to create a post in a specific category
 
+    const parsedParam = extractAndValidatePathParam(request, pathParamSchema)
+    if (!parsedParam.success) {
+      return left(
+        new ValidationError(
+          parsedParam.error.issues.map((e) => e.message).join('; ')
+        )
+      )
+    }
+    const { id } = parsedParam.data
+
+    // Check if the post exists
+    const existingPost = await db.query.post.findFirst({
+      where: eq(post.id, id)
+    })
+
+    if (!existingPost) {
+      return left(new NotFoundError('Post not found'))
+    }
+
+    // Parse the request body
     const bodyData = await request.json()
 
     const parsed = createPostSchema().safeParse(bodyData)
@@ -49,6 +75,7 @@ export async function createPost(
       )
     }
 
+    // Check if the slug is already used by another post
     const categoryData = await db.query.category.findFirst({
       where: eq(category.slug, parsed.data.categorySlug)
     })
@@ -57,6 +84,7 @@ export async function createPost(
       return left(new ValidationError('Category not found'))
     }
 
+    // If subcategorySlug is not provided, use the default slug format
     const subcategorySlug = parsed.data.subcategorySlug
       ? parsed.data.subcategorySlug
       : `${parsed.data.categorySlug}-default`
@@ -75,6 +103,7 @@ export async function createPost(
       )
     }
 
+    // Check if a post with the same slug already exists
     const existPostWithThisSlug = await db.query.post.findFirst({
       where: eq(post.slug, parsed.data.slug)
     })
@@ -83,16 +112,16 @@ export async function createPost(
       return left(new ConflictError('Post with this slug already exists'))
     }
 
+    // Update the post
     const [data] = await db
-      .insert(post)
-      .values({
+      .update(post)
+      .set({
         title: parsed.data.title,
         slug: parsed.data.slug,
         excerpt: parsed.data.excerpt,
         featuredImage: parsed.data.featuredImage,
         content: parsed.data.content,
-        subcategoryId: subcategoryData.id,
-        authorId: sessionResult.value?.user.id!
+        subcategoryId: subcategoryData.id
       })
       .returning()
 

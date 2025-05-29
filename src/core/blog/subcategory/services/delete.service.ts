@@ -33,7 +33,7 @@ export async function deleteSubcategory(
     if (!parsedParam.success) {
       return left(
         new ValidationError(
-          parsedParam.error.issues.map((e) => e.message).join(', ')
+          parsedParam.error.issues.map((e) => e.message).join('; ')
         )
       )
     }
@@ -72,7 +72,7 @@ export async function deleteSubcategory(
   } catch (error) {
     if (error instanceof z.ZodError) {
       return left(
-        new ValidationError(error.issues.map((e) => e.message).join(', '))
+        new ValidationError(error.issues.map((e) => e.message).join('; '))
       )
     }
 
