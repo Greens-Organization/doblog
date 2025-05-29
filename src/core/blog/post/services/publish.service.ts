@@ -64,6 +64,10 @@ export async function publishPost(
       return left(new ConflictError('Post is already published'))
     }
 
+    if (existingPost.status === 'archived') {
+      return left(new ConflictError('Unable to publish an archived post'))
+    }
+
     const [updatedPost] = await db
       .update(post)
       .set({
