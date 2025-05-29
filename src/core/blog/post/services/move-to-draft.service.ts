@@ -1,33 +1,44 @@
-import type { ICategoryDTO } from '@/core/blog/category/dto'
 import type { AppEither } from '@/core/error/app-either.protocols'
 import { isLeft, left, right } from '@/core/error/either'
 import {
+  ConflictError,
   DatabaseError,
   NotFoundError,
+  UnauthorizedError,
   ValidationError
 } from '@/core/error/errors'
 import { db } from '@/infra/db'
-import { category } from '@/infra/db/schemas/blog'
+import { post } from '@/infra/db/schemas/blog'
 import { ensureAuthenticated } from '@/infra/helpers/auth'
-import { ensureIsAdmin } from '@/infra/helpers/auth/ensure-is-admin'
+import { AccessHandler } from '@/infra/helpers/handlers/access-handler'
 import { extractAndValidatePathParam } from '@/infra/helpers/params'
 import { logger } from '@/infra/lib/logger/logger-server'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod/v4'
+import { UserRole } from '../../user/dto'
+import type { IPostDTO } from '../dto'
 
 const pathParamSchema = z.object({
-  id: z.uuid('Invalid category ID')
+  id: z.uuid('Invalid Post ID')
 })
 
-export async function deleteCategory(
+export async function movePostToDraft(
   request: Request
-): Promise<AppEither<{ message: string; deleted: ICategoryDTO }>> {
+): Promise<AppEither<IPostDTO>> {
   try {
     const sessionResult = await ensureAuthenticated(request)
     if (isLeft(sessionResult)) return sessionResult
 
-    const isAdmin = ensureIsAdmin(sessionResult.value)
-    if (isLeft(isAdmin)) return isAdmin
+    if (
+      !AccessHandler.hasAccessByRole(sessionResult.value?.user.role, [
+        UserRole.ADMIN,
+        UserRole.EDITOR
+      ])
+    ) {
+      return left(
+        new UnauthorizedError('Access denied: Admins and Editors only')
+      )
+    }
 
     const parsedParam = extractAndValidatePathParam(request, pathParamSchema)
     if (!parsedParam.success) {
@@ -37,25 +48,31 @@ export async function deleteCategory(
         )
       )
     }
+
     const { id } = parsedParam.data
 
-    const existingCategory = await db.query.category.findFirst({
-      where: eq(category.id, id)
+    const existingPost = await db.query.post.findFirst({
+      where: eq(post.id, id)
     })
 
-    if (!existingCategory) {
-      return left(new NotFoundError('Category not found'))
+    if (!existingPost) {
+      return left(new NotFoundError('Post not found'))
     }
 
-    const [deletedCategory] = await db
-      .delete(category)
-      .where(eq(category.id, id))
+    if (existingPost.status === 'draft') {
+      return left(new ConflictError('Post is already a draft'))
+    }
+
+    const [updatedPost] = await db
+      .update(post)
+      .set({
+        status: 'draft',
+        publishedAt: null
+      })
+      .where(eq(post.id, id))
       .returning()
 
-    return right({
-      message: 'Category successfully deleted',
-      deleted: deletedCategory
-    })
+    return right(updatedPost)
   } catch (error) {
     if (error instanceof z.ZodError) {
       return left(
@@ -63,7 +80,8 @@ export async function deleteCategory(
       )
     }
 
-    logger.error('Unhandled error in deleteCategory:', error)
+    console.error(error)
+    logger.error('Unhandled error in movePostToDraft:', error)
     return left(new DatabaseError())
   }
 }

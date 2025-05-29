@@ -7,7 +7,7 @@ import {
   ValidationError
 } from '@/core/error/errors'
 import { db } from '@/infra/db'
-import { category } from '@/infra/db/schemas/blog'
+import { category, subcategory } from '@/infra/db/schemas/blog'
 import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { ensureIsAdmin } from '@/infra/helpers/auth/ensure-is-admin'
 import { logger } from '@/infra/lib/logger/logger-server'
@@ -31,7 +31,7 @@ export async function createCategory(
     if (!parsed.success) {
       return left(
         new ValidationError(
-          parsed.error.issues.map((e) => e.message).join(', ')
+          parsed.error.issues.map((e) => e.message).join('; ')
         )
       )
     }
@@ -53,11 +53,22 @@ export async function createCategory(
       })
       .returning()
 
+    // Default Subcategory
+    const [defaultSubCategory] = await db
+      .insert(subcategory)
+      .values({
+        categoryId: data.id,
+        name: `${parsed.data.name} Default Subcategory`,
+        slug: `${parsed.data.slug}-default`,
+        isDefault: true
+      })
+      .returning()
+
     return right(data)
   } catch (error) {
     if (error instanceof z.ZodError) {
       return left(
-        new ValidationError(error.issues.map((e) => e.message).join(', '))
+        new ValidationError(error.issues.map((e) => e.message).join('; '))
       )
     }
 

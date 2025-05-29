@@ -1,7 +1,8 @@
 import type { DSubcategory } from '@/infra/db/schemas/blog'
 import type { ICategoryDTO } from '../../category/dto'
 
-export interface ISubcategoryDTO extends Omit<DSubcategory, 'categoryId'> {
+export interface ISubcategoryDTO
+  extends Omit<DSubcategory, 'categoryId' | 'isDefault'> {
   category: Omit<ICategoryDTO, 'createdAt' | 'updatedAt'>
 }
 

@@ -37,24 +37,11 @@ export async function updateSubcategory(
         new ValidationError(
           parsedParam.error.issues
             .map((e: { message: string }) => e.message)
-            .join(', ')
+            .join('; ')
         )
       )
     }
     const { id } = parsedParam.data
-
-    const bodyData = await request.json()
-
-    const parsedBody = updateCategorySchema().safeParse(bodyData)
-    if (!parsedBody.success) {
-      return left(
-        new ValidationError(
-          parsedBody.error.issues
-            .map((e: { message: string }) => e.message)
-            .join(', ')
-        )
-      )
-    }
 
     const existingSubcategory = await db.query.subcategory.findFirst({
       where: eq(subcategory.id, id),
@@ -77,8 +64,24 @@ export async function updateSubcategory(
       return left(new NotFoundError('Subcategory not found'))
     }
 
+    const bodyData = await request.json()
+
+    const parsedBody = updateCategorySchema().safeParse(bodyData)
+    if (!parsedBody.success) {
+      return left(
+        new ValidationError(
+          parsedBody.error.issues
+            .map((e: { message: string }) => e.message)
+            .join('; ')
+        )
+      )
+    }
+
     const slugAlreadyUsed = await db.query.subcategory.findFirst({
-      where: and(ne(subcategory.id, id), eq(subcategory.slug, parsedBody.data.slug!))
+      where: and(
+        ne(subcategory.id, id),
+        eq(subcategory.slug, parsedBody.data.slug!)
+      )
     })
 
     if (slugAlreadyUsed) {
@@ -104,7 +107,7 @@ export async function updateSubcategory(
   } catch (error) {
     if (error instanceof z.ZodError) {
       return left(
-        new ValidationError(error.issues.map((e) => e.message).join(', '))
+        new ValidationError(error.issues.map((e) => e.message).join('; '))
       )
     }
 
@@ -112,4 +115,3 @@ export async function updateSubcategory(
     return left(new DatabaseError())
   }
 }
-

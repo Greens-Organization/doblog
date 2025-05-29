@@ -27,21 +27,21 @@ export async function createSubcategory(
 
     const bodyData = await request.json()
 
-    const categoryData = await db.query.category.findFirst({
-      where: eq(category.slug, bodyData.category_slug)
-    })
-
-    if (!categoryData) {
-      return left(new ValidationError('Category not found'))
-    }
-
     const parsed = createSubcategorySchema().safeParse(bodyData)
     if (!parsed.success) {
       return left(
         new ValidationError(
-          parsed.error.issues.map((e) => e.message).join(', ')
+          parsed.error.issues.map((e) => e.message).join('; ')
         )
       )
+    }
+
+    const categoryData = await db.query.category.findFirst({
+      where: eq(category.id, parsed.data.categorySlug)
+    })
+
+    if (!categoryData) {
+      return left(new ValidationError('Category not found'))
     }
 
     const existSubcategory = await db.query.subcategory.findFirst({
@@ -68,7 +68,7 @@ export async function createSubcategory(
   } catch (error) {
     if (error instanceof z.ZodError) {
       return left(
-        new ValidationError(error.issues.map((e) => e.message).join(', '))
+        new ValidationError(error.issues.map((e) => e.message).join('; '))
       )
     }
 
