@@ -52,8 +52,8 @@ export async function listPostsByCategoryOrSubcategory(
       per_page: url.searchParams.get('per_page') ?? undefined
     })
 
-    const page = params.page
-    const perPage = params.per_page
+    const page = params.page ?? 1
+    const perPage = params.per_page ?? 25
     const offset = (page - 1) * perPage
 
     if (!params.category_slug && !params.subcategory_slug) {
