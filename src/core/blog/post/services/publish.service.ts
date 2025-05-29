@@ -81,6 +81,7 @@ export async function publishPost(
       )
     }
 
+    console.error(error)
     logger.error('Unhandled error in publishPost:', error)
     return left(new DatabaseError())
   }
