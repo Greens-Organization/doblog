@@ -29,7 +29,7 @@ export async function getCategory(
     if (!parsed.success) {
       return left(
         new ValidationError(
-          parsed.error.issues.map((e) => e.message).join(', ')
+          parsed.error.issues.map((e) => e.message).join('; ')
         )
       )
     }

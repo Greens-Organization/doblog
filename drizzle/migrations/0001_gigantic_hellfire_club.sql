@@ -1,0 +1,1 @@
+ALTER TABLE "subcategory" ADD COLUMN "isDefault" boolean DEFAULT false NOT NULL;

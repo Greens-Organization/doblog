@@ -104,6 +104,16 @@ async function seed() {
       const subcategoryList =
         subcategoriesMap[category.name as keyof typeof subcategoriesMap] || []
 
+      await db
+        .insert(subcategory)
+        .values({
+          name: `${category.name} Default Subcategory`,
+          slug: `${category.slug}-default`,
+          categoryId: category.id,
+          isDefault: true
+        })
+        .returning()
+
       for (const subcategoryName of subcategoryList) {
         await db
           .insert(subcategory)
@@ -119,6 +129,7 @@ async function seed() {
 
     logger.info('Seed concluided with success!')
   } catch (error) {
+    console.error('Error on start seed:', error)
     logger.error('Error on start seed:', error)
     process.exit(1)
   } finally {

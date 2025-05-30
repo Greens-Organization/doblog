@@ -1,5 +1,5 @@
 import { type InferSelectModel, relations } from 'drizzle-orm'
-import { pgTable, text } from 'drizzle-orm/pg-core'
+import { boolean, pgTable, text } from 'drizzle-orm/pg-core'
 import { createdAt, idPrimaryKey, updatedAt } from '../helpers'
 import { category } from './category'
 import { post } from './post'
@@ -9,6 +9,7 @@ export const subcategory = pgTable('subcategory', {
   name: text('name').notNull(),
   slug: text('slug').notNull().unique(),
   description: text('description'),
+  isDefault: boolean().default(false).notNull(),
   categoryId: text('category_id')
     .notNull()
     .references(() => category.id, { onDelete: 'cascade' }),
