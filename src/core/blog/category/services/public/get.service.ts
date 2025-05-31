@@ -24,7 +24,6 @@ export async function getCategory(
     const parsedParam = extractAndValidatePathParams(request, pathParamSchema, [
       'slug'
     ])
-    console.log('Parsed Param:', parsedParam)
     if (!parsedParam.success) {
       return left(
         new ValidationError(

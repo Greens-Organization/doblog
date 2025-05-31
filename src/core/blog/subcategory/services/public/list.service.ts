@@ -1,10 +1,8 @@
 import type { AppEither } from '@/core/error/app-either.protocols'
-import { isLeft, left, right } from '@/core/error/either'
+import { left, right } from '@/core/error/either'
 import { DatabaseError, ValidationError } from '@/core/error/errors'
 import { db } from '@/infra/db'
 import { category, subcategory } from '@/infra/db/schemas/blog'
-import { ensureAuthenticated } from '@/infra/helpers/auth'
-import { ensureIsAdmin } from '@/infra/helpers/auth/ensure-is-admin'
 import { logger } from '@/infra/lib/logger/logger-server'
 import { zod } from '@/infra/lib/zod'
 import { and, eq } from 'drizzle-orm'
@@ -13,18 +11,12 @@ import type { ISubcategoryDTO } from '../../dto'
 const searchParamsSchema = zod.object({
   slug: zod.string().optional(),
   name: zod.string().optional(),
-  categorySlug: zod.string().optional(),
-  withDefault: zod
-    .stringbool({
-      truthy: ['true'],
-      falsy: ['false']
-    })
-    .optional()
+  categorySlug: zod.string().optional()
 })
 
 export async function listSubcategories(
   request: Request
-): Promise<AppEither<ISubcategoryDTO[]>> {
+): Promise<AppEither<Omit<ISubcategoryDTO, 'id'>[]>> {
   try {
     const url = new URL(request.url)
     const params = searchParamsSchema.parse({
@@ -54,31 +46,18 @@ export async function listSubcategories(
       filters.push(eq(subcategory.categoryId, categoryFilter.id))
     }
 
-    if (params.withDefault !== undefined) {
-      const sessionResult = await ensureAuthenticated(request)
-      if (isLeft(sessionResult)) return sessionResult
-
-      const isAdmin = ensureIsAdmin(sessionResult.value)
-      if (isLeft(isAdmin)) return isAdmin
-
-      filters.push(eq(subcategory.isDefault, params.withDefault))
-    } else {
-      filters.push(eq(subcategory.isDefault, false))
-    }
-
-    const whereClause = filters.length > 0 ? and(...filters) : undefined
-
     // const result = await db.select().from(subcategory).where(whereClause)
     const result = await db.query.subcategory.findMany({
-      where: whereClause,
+      where: and(eq(subcategory.isDefault, false), ...filters),
       columns: {
         categoryId: false,
-        isDefault: false
+        isDefault: false,
+        id: false
       },
       with: {
         category: {
           columns: {
-            id: true,
+            id: false,
             name: true,
             slug: true,
             description: true
@@ -90,6 +69,7 @@ export async function listSubcategories(
     //TODO: add total quantity of items in each category
     return right(result)
   } catch (error) {
+    console.log('error', error)
     if (error instanceof zod.ZodError) {
       return left(new ValidationError('Invalid query parameters'))
     }

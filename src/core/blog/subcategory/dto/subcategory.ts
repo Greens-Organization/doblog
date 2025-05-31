@@ -3,7 +3,7 @@ import type { ICategoryDTO } from '../../category/dto'
 
 export interface ISubcategoryDTO
   extends Omit<DSubcategory, 'categoryId' | 'isDefault'> {
-  category: Omit<ICategoryDTO, 'createdAt' | 'updatedAt'>
+  category: Omit<ICategoryDTO, 'id' | 'createdAt' | 'updatedAt'>
 }
 
 export interface ICreateSubcategoryDTO
