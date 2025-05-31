@@ -8,34 +8,47 @@ import {
 } from '@/core/error/errors'
 import { db } from '@/infra/db'
 import { category } from '@/infra/db/schemas/blog'
+import { extractAndValidatePathParams } from '@/infra/helpers/params'
 import { logger } from '@/infra/lib/logger/logger-server'
+import { zod } from '@/infra/lib/zod'
 import { eq } from 'drizzle-orm'
-import { z } from 'zod/v4'
 
-const pathParamSchema = z.object({
-  id: z.uuid('Invalid category ID')
+const pathParamSchema = zod.object({
+  slug: zod.string().min(1, 'Slug must be at least 1 character')
 })
 
 export async function getCategory(
   request: Request
-): Promise<AppEither<ICategoryDTO>> {
+): Promise<AppEither<Omit<ICategoryDTO, 'id'>>> {
   try {
-    const url = new URL(request.url)
-    const pathParts = url.pathname.split('/')
-    const id = pathParts[pathParts.length - 1]
-
-    const parsed = pathParamSchema.safeParse({ id })
-
-    if (!parsed.success) {
+    const parsedParam = extractAndValidatePathParams(request, pathParamSchema, [
+      'slug'
+    ])
+    if (!parsedParam.success) {
       return left(
         new ValidationError(
-          parsed.error.issues.map((e) => e.message).join('; ')
+          (parsedParam.error as zod.ZodError).issues
+            .map((e) => e.message)
+            .join('; ')
         )
       )
     }
+    const { slug } = parsedParam.data
 
     const result = await db.query.category.findFirst({
-      where: eq(category.id, parsed.data.id)
+      where: eq(category.slug, slug),
+      columns: {
+        id: false
+      },
+      with: {
+        subcategory: {
+          columns: {
+            name: true,
+            slug: true,
+            description: true
+          }
+        }
+      }
     })
 
     if (!result) {
@@ -44,7 +57,7 @@ export async function getCategory(
 
     return right(result)
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (error instanceof zod.ZodError) {
       return left(new ValidationError('Invalid category ID'))
     }
 

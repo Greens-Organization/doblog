@@ -10,15 +10,15 @@ import { db } from '@/infra/db'
 import { subcategory } from '@/infra/db/schemas/blog'
 import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { ensureIsAdmin } from '@/infra/helpers/auth/ensure-is-admin'
-import { extractAndValidatePathParam } from '@/infra/helpers/params'
+import { extractAndValidatePathParams } from '@/infra/helpers/params'
+import { zod } from '@/infra/lib/zod'
 import { updateCategorySchema } from '@/infra/validations/schemas/category'
 import { logger } from 'better-auth'
 import { and, eq, ne } from 'drizzle-orm'
-import { z } from 'zod/v4'
 import type { ISubcategoryDTO } from '../dto'
 
-const pathParamSchema = z.object({
-  id: z.uuid('Invalid category ID')
+const pathParamSchema = zod.object({
+  id: zod.uuid('Invalid category ID')
 })
 
 export async function updateSubcategory(
@@ -31,7 +31,9 @@ export async function updateSubcategory(
     const isAdmin = ensureIsAdmin(sessionResult.value)
     if (isLeft(isAdmin)) return isAdmin
 
-    const parsedParam = extractAndValidatePathParam(request, pathParamSchema)
+    const parsedParam = extractAndValidatePathParams(request, pathParamSchema, [
+      'id'
+    ])
     if (!parsedParam.success) {
       return left(
         new ValidationError(
@@ -105,7 +107,7 @@ export async function updateSubcategory(
 
     return right({ ...updatedCategory, category: existingSubcategory.category })
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (error instanceof zod.ZodError) {
       return left(
         new ValidationError(error.issues.map((e) => e.message).join('; '))
       )

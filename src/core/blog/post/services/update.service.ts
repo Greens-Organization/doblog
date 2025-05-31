@@ -11,16 +11,16 @@ import { db } from '@/infra/db'
 import { category, post, subcategory } from '@/infra/db/schemas/blog'
 import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { AccessHandler } from '@/infra/helpers/handlers/access-handler'
-import { extractAndValidatePathParam } from '@/infra/helpers/params'
+import { extractAndValidatePathParams } from '@/infra/helpers/params'
 import { logger } from '@/infra/lib/logger/logger-server'
+import { zod } from '@/infra/lib/zod'
 import { createPostSchema } from '@/infra/validations/schemas/post'
 import { eq } from 'drizzle-orm'
-import { z } from 'zod/v4'
 import { UserRole } from '../../user/dto'
 import type { IPostDTO } from '../dto'
 
-const pathParamSchema = z.object({
-  id: z.uuid('Invalid Post ID')
+const pathParamSchema = zod.object({
+  id: zod.uuid('Invalid Post ID')
 })
 
 export async function updatePost(
@@ -44,11 +44,15 @@ export async function updatePost(
     }
     // TODO: Add a check for the user's permissions to create a post in a specific category
 
-    const parsedParam = extractAndValidatePathParam(request, pathParamSchema)
+    const parsedParam = extractAndValidatePathParams(request, pathParamSchema, [
+      'id'
+    ])
     if (!parsedParam.success) {
       return left(
         new ValidationError(
-          parsedParam.error.issues.map((e) => e.message).join('; ')
+          (parsedParam.error as zod.ZodError).issues
+            .map((e) => e.message)
+            .join('; ')
         )
       )
     }
@@ -70,7 +74,7 @@ export async function updatePost(
     if (!parsed.success) {
       return left(
         new ValidationError(
-          parsed.error.issues.map((e) => e.message).join('| ')
+          (parsed.error as zod.ZodError).issues.map((e) => e.message).join('| ')
         )
       )
     }
@@ -129,7 +133,7 @@ export async function updatePost(
 
     return right({ ...data, category: categoryDataFiltered })
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (error instanceof zod.ZodError) {
       return left(
         new ValidationError(error.issues.map((e) => e.message).join('; '))
       )

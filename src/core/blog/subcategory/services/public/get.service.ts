@@ -7,42 +7,45 @@ import {
 } from '@/core/error/errors'
 import { db } from '@/infra/db'
 import { subcategory } from '@/infra/db/schemas/blog'
+import { extractAndValidatePathParams } from '@/infra/helpers/params'
 import { logger } from '@/infra/lib/logger/logger-server'
+import { zod } from '@/infra/lib/zod'
 import { eq } from 'drizzle-orm'
-import { z } from 'zod/v4'
-import type { ISubcategoryDTO } from '../dto'
+import type { ISubcategoryDTO } from '../../dto'
 
-const pathParamSchema = z.object({
-  id: z.uuid('Invalid category ID')
+const pathParamSchema = zod.object({
+  slug: zod.string().min(1, 'Slug must be at least 1 character')
 })
 
 export async function getSubcategory(
   request: Request
-): Promise<AppEither<ISubcategoryDTO>> {
+): Promise<AppEither<Omit<ISubcategoryDTO, 'id'>>> {
   try {
-    const url = new URL(request.url)
-    const pathParts = url.pathname.split('/')
-    const id = pathParts[pathParts.length - 1]
-
-    const parsed = pathParamSchema.safeParse({ id })
-
-    if (!parsed.success) {
+    const parsedParam = extractAndValidatePathParams(request, pathParamSchema, [
+      'slug'
+    ])
+    if (!parsedParam.success) {
       return left(
         new ValidationError(
-          parsed.error.issues.map((e) => e.message).join('; ')
+          (parsedParam.error as zod.ZodError).issues
+            .map((e) => e.message)
+            .join('; ')
         )
       )
     }
+    const { slug } = parsedParam.data
 
     const result = await db.query.subcategory.findFirst({
-      where: eq(subcategory.id, parsed.data.id),
+      where: eq(subcategory.slug, slug),
       columns: {
-        categoryId: false
+        id: false,
+        categoryId: false,
+        isDefault: false
       },
       with: {
         category: {
           columns: {
-            id: true,
+            id: false,
             name: true,
             slug: true,
             description: true
@@ -57,7 +60,7 @@ export async function getSubcategory(
 
     return right(result)
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (error instanceof zod.ZodError) {
       return left(new ValidationError('Invalid subcategory ID'))
     }
 

@@ -11,9 +11,9 @@ import { category, post, subcategory } from '@/infra/db/schemas/blog'
 import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { AccessHandler } from '@/infra/helpers/handlers/access-handler'
 import { logger } from '@/infra/lib/logger/logger-server'
+import { zod } from '@/infra/lib/zod'
 import { createPostSchema } from '@/infra/validations/schemas/post'
 import { eq } from 'drizzle-orm'
-import { z } from 'zod/v4'
 import { UserRole } from '../../user/dto'
 import type { IPostDTO } from '../dto'
 
@@ -44,7 +44,7 @@ export async function createPost(
     if (!parsed.success) {
       return left(
         new ValidationError(
-          parsed.error.issues.map((e) => e.message).join('| ')
+          (parsed.error as zod.ZodError).issues.map((e) => e.message).join('| ')
         )
       )
     }
@@ -98,9 +98,12 @@ export async function createPost(
 
     const { createdAt, updatedAt, ...categoryDataFiltered } = categoryData
 
-    return right({ ...data, category: categoryDataFiltered })
+    return right({
+      body: { ...data, category: categoryDataFiltered },
+      statusCode: 201
+    })
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (error instanceof zod.ZodError) {
       return left(
         new ValidationError(error.issues.map((e) => e.message).join('; '))
       )
