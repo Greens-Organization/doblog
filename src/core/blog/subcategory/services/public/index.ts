@@ -1,2 +1,2 @@
-export * from './get.service';
-export * from './list.service';
+export * from './get.service'
+export * from './list.service'

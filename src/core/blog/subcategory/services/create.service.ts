@@ -64,7 +64,10 @@ export async function createSubcategory(
 
     const { createdAt, updatedAt, ...categoryDataFiltered } = categoryData
 
-    return right({ ...data, category: categoryDataFiltered })
+    return right({
+      body: { ...data, category: categoryDataFiltered },
+      statusCode: 201
+    })
   } catch (error) {
     if (error instanceof zod.ZodError) {
       return left(

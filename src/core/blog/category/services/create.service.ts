@@ -64,7 +64,7 @@ export async function createCategory(
       })
       .returning()
 
-    return right(data)
+    return right({ body: data, statusCode: 201 })
   } catch (error) {
     if (error instanceof zod.ZodError) {
       return left(

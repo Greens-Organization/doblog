@@ -1,6 +1,6 @@
 import {
-  updateSubcategory,
-  deleteSubcategory
+  deleteSubcategory,
+  updateSubcategory
 } from '@/core/blog/subcategory/services'
 import { createApiHandler } from '@/infra/helpers/handlers/api/create-api-handler'
 

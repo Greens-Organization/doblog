@@ -23,8 +23,17 @@ export function createApiHandler<R>(
       }
 
       if (isRight(result)) {
-        return new Response(JSON.stringify(result.value), {
-          status: 200,
+        const value = result.value as any
+        const responseBody =
+          value && typeof value === 'object' && 'body' in value
+            ? value.body
+            : value
+        const statusCode =
+          value && typeof value === 'object' && 'statusCode' in value
+            ? value.statusCode
+            : 200
+        return new Response(JSON.stringify(responseBody), {
+          status: statusCode,
           headers: { 'Content-Type': 'application/json' }
         })
       }

@@ -11,12 +11,12 @@ import { db } from '@/infra/db'
 import { post } from '@/infra/db/schemas/blog'
 import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { AccessHandler } from '@/infra/helpers/handlers/access-handler'
+import { extractAndValidatePathParams } from '@/infra/helpers/params'
 import { logger } from '@/infra/lib/logger/logger-server'
 import { zod } from '@/infra/lib/zod'
 import { eq } from 'drizzle-orm'
 import { UserRole } from '../../user/dto'
 import type { IPostDTO } from '../dto'
-import { extractAndValidatePathParams } from '@/infra/helpers/params'
 
 const pathParamSchema = zod.object({
   id: zod.uuid('Invalid Post ID')
