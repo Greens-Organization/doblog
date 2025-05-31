@@ -10,9 +10,9 @@ import { category, subcategory } from '@/infra/db/schemas/blog'
 import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { ensureIsAdmin } from '@/infra/helpers/auth/ensure-is-admin'
 import { logger } from '@/infra/lib/logger/logger-server'
+import { zod } from '@/infra/lib/zod'
 import { createSubcategorySchema } from '@/infra/validations/schemas/subcategory'
 import { eq } from 'drizzle-orm'
-import { z } from 'zod/v4'
 import type { ISubcategoryDTO } from '../dto'
 
 export async function createSubcategory(
@@ -31,7 +31,7 @@ export async function createSubcategory(
     if (!parsed.success) {
       return left(
         new ValidationError(
-          parsed.error.issues.map((e) => e.message).join('; ')
+          (parsed.error as zod.ZodError).issues.map((e) => e.message).join('; ')
         )
       )
     }
@@ -66,7 +66,7 @@ export async function createSubcategory(
 
     return right({ ...data, category: categoryDataFiltered })
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (error instanceof zod.ZodError) {
       return left(
         new ValidationError(error.issues.map((e) => e.message).join('; '))
       )

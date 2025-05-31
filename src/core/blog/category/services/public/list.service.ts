@@ -5,12 +5,12 @@ import { DatabaseError, ValidationError } from '@/core/error/errors'
 import { db } from '@/infra/db'
 import { category } from '@/infra/db/schemas/blog'
 import { logger } from '@/infra/lib/logger/logger-server'
+import { zod } from '@/infra/lib/zod'
 import { and, eq } from 'drizzle-orm'
-import { z } from 'zod/v4'
 
-const searchParamsSchema = z.object({
-  slug: z.string().optional(),
-  name: z.string().optional()
+const searchParamsSchema = zod.object({
+  slug: zod.string().optional(),
+  name: zod.string().optional()
 })
 
 export async function listCategories(
@@ -40,7 +40,7 @@ export async function listCategories(
     //TODO: add total quantity of items in each category
     return right(result)
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (error instanceof zod.ZodError) {
       return left(
         new ValidationError(error.issues.map((e) => e.message).join('; '))
       )

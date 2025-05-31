@@ -13,13 +13,13 @@ import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { AccessHandler } from '@/infra/helpers/handlers/access-handler'
 import { extractAndValidatePathParam } from '@/infra/helpers/params'
 import { logger } from '@/infra/lib/logger/logger-server'
+import { zod } from '@/infra/lib/zod'
 import { eq } from 'drizzle-orm'
-import { z } from 'zod/v4'
 import { UserRole } from '../../user/dto'
 import type { IPostDTO } from '../dto'
 
-const pathParamSchema = z.object({
-  id: z.uuid('Invalid Post ID')
+const pathParamSchema = zod.object({
+  id: zod.uuid('Invalid Post ID')
 })
 
 export async function movePostToDraft(
@@ -44,7 +44,9 @@ export async function movePostToDraft(
     if (!parsedParam.success) {
       return left(
         new ValidationError(
-          parsedParam.error.issues.map((e) => e.message).join('; ')
+          (parsedParam.error as zod.ZodError).issues
+            .map((e) => e.message)
+            .join('; ')
         )
       )
     }
@@ -74,7 +76,7 @@ export async function movePostToDraft(
 
     return right(updatedPost)
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (error instanceof zod.ZodError) {
       return left(
         new ValidationError(error.issues.map((e) => e.message).join('; '))
       )

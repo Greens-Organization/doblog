@@ -1,13 +1,13 @@
-import type { z } from 'zod/v4'
+import type { zod } from '../lib/zod'
 
 type ValidationResult<T> =
   | { success: true; data: T }
-  | { success: false; error: z.ZodError }
+  | { success: false; error: zod.ZodError }
 
-function extractAndValidatePathParam<T extends z.ZodSchema<any>>(
+function extractAndValidatePathParam<T extends zod.ZodSchema<any>>(
   request: Request,
   schema: T
-): ValidationResult<z.infer<T>> {
+): ValidationResult<zod.infer<T>> {
   const url = new URL(request.url)
   const pathParts = url.pathname.split('/')
   const param = pathParts[pathParts.length - 1]

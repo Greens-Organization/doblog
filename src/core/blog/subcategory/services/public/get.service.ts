@@ -9,11 +9,11 @@ import { db } from '@/infra/db'
 import { subcategory } from '@/infra/db/schemas/blog'
 import { logger } from '@/infra/lib/logger/logger-server'
 import { eq } from 'drizzle-orm'
-import { z } from 'zod/v4'
-import type { ISubcategoryDTO } from '../dto'
+import type { ISubcategoryDTO } from '../../dto'
+import { zod } from '@/infra/lib/zod'
 
-const pathParamSchema = z.object({
-  id: z.uuid('Invalid category ID')
+const pathParamSchema = zod.object({
+  id: zod.uuid('Invalid category ID')
 })
 
 export async function getSubcategory(
@@ -57,7 +57,7 @@ export async function getSubcategory(
 
     return right(result)
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (error instanceof zod.ZodError) {
       return left(new ValidationError('Invalid subcategory ID'))
     }
 

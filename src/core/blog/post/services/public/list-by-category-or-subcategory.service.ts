@@ -9,18 +9,18 @@ import { db } from '@/infra/db'
 import type { DCategory, DPost, DSubcategory } from '@/infra/db/schemas/blog'
 import { category, post, subcategory } from '@/infra/db/schemas/blog'
 import { logger } from '@/infra/lib/logger/logger-server'
+import { zod } from '@/infra/lib/zod'
 import { and, count, eq } from 'drizzle-orm'
-import { z } from 'zod/v4'
 
-const searchParamsSchema = z
+const searchParamsSchema = zod
   .object({
-    category_slug: z.string().optional(),
-    subcategory_slug: z.string().optional(),
-    page: z.coerce.number().optional().default(1),
-    per_page: z.coerce.number().optional().default(25)
+    category_slug: zod.string().optional(),
+    subcategory_slug: zod.string().optional(),
+    page: zod.coerce.number().optional().default(1),
+    per_page: zod.coerce.number().optional().default(25)
   })
   .refine(
-    (data) =>
+    (data: { category_slug?: string; subcategory_slug?: string }) =>
       (data.category_slug && !data.subcategory_slug) ||
       (!data.category_slug && data.subcategory_slug),
     { message: 'Provide either category_slug or subcategory_slug, not both.' }
@@ -165,9 +165,13 @@ export async function listPostsByCategoryOrSubcategory(
       }
     })
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (error instanceof zod.ZodError) {
       return left(
-        new ValidationError(error.issues.map((e) => e.message).join('; '))
+        new ValidationError(
+          (error as zod.ZodError).issues
+            .map((e: { message: any }) => e.message)
+            .join('; ')
+        )
       )
     }
 
