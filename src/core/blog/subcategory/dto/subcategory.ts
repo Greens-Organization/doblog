@@ -6,6 +6,9 @@ export interface ISubcategoryDTO
   category: Omit<ICategoryDTO, 'id' | 'createdAt' | 'updatedAt'>
 }
 
+export interface IPublicSubcategoryDTO
+  extends Omit<ISubcategoryDTO, 'id' | 'isDefault' | 'categoryId'> {}
+
 export interface ICreateSubcategoryDTO
   extends Omit<
     ISubcategoryDTO,

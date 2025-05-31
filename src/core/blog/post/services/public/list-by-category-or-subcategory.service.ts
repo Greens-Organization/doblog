@@ -1,3 +1,5 @@
+import type { IPublicCategoryDTO } from '@/core/blog/category/dto'
+import type { IPublicSubcategoryDTO } from '@/core/blog/subcategory/dto'
 import type { AppEither } from '@/core/error/app-either.protocols'
 import { left, right } from '@/core/error/either'
 import {
@@ -6,11 +8,11 @@ import {
   ValidationError
 } from '@/core/error/errors'
 import { db } from '@/infra/db'
-import type { DCategory, DPost, DSubcategory } from '@/infra/db/schemas/blog'
 import { category, post, subcategory } from '@/infra/db/schemas/blog'
 import { logger } from '@/infra/lib/logger/logger-server'
 import { zod } from '@/infra/lib/zod'
 import { and, count, eq } from 'drizzle-orm'
+import type { IGetPostDTO } from '../../dto'
 
 const searchParamsSchema = zod
   .object({
@@ -27,9 +29,9 @@ const searchParamsSchema = zod
   )
 
 interface ResponseDTO {
-  category: DCategory
-  subcategory: DSubcategory
-  posts: DPost[]
+  category: IPublicCategoryDTO
+  subcategory: IPublicSubcategoryDTO
+  posts: IGetPostDTO[]
   pagination: {
     total: number
     page: number
@@ -64,30 +66,37 @@ export async function listPostsByCategoryOrSubcategory(
       )
     }
 
-    let categoryData: DCategory
-    let subcategoryData: DSubcategory
+    let categoryData
+    let subcategoryData
 
     if (params.category_slug) {
-      const [categoryResult] = await db
-        .select()
-        .from(category)
-        .where(eq(category.slug, params.category_slug))
-        .limit(1)
+      const categoryResult = await db.query.category.findFirst({
+        where: eq(category.slug, params.category_slug)
+      })
 
       if (!categoryResult) {
         return left(new NotFoundError('Category not found'))
       }
 
-      const [subcategoryResult] = await db
-        .select()
-        .from(subcategory)
-        .where(
-          and(
-            eq(subcategory.categoryId, categoryResult.id),
-            eq(subcategory.isDefault, true)
-          )
-        )
-        .limit(1)
+      const subcategoryResult = await db.query.subcategory.findFirst({
+        where: and(
+          eq(subcategory.categoryId, categoryResult.id),
+          eq(subcategory.isDefault, true)
+        ),
+        columns: {
+          categoryId: false,
+          isDefault: false
+        },
+        with: {
+          category: {
+            columns: {
+              name: true,
+              slug: true,
+              description: true
+            }
+          }
+        }
+      })
 
       if (!subcategoryResult) {
         return left(
@@ -98,21 +107,29 @@ export async function listPostsByCategoryOrSubcategory(
       categoryData = categoryResult
       subcategoryData = subcategoryResult
     } else {
-      const [subcategoryResult] = await db
-        .select()
-        .from(subcategory)
-        .where(eq(subcategory.slug, params.subcategory_slug!))
-        .limit(1)
+      const subcategoryResult = await db.query.subcategory.findFirst({
+        where: eq(subcategory.slug, params.subcategory_slug!),
+        columns: {
+          isDefault: false
+        },
+        with: {
+          category: {
+            columns: {
+              name: true,
+              slug: true,
+              description: true
+            }
+          }
+        }
+      })
 
       if (!subcategoryResult) {
         return left(new NotFoundError('Subcategory not found'))
       }
 
-      const [categoryResult] = await db
-        .select()
-        .from(category)
-        .where(eq(category.id, subcategoryResult.categoryId))
-        .limit(1)
+      const categoryResult = await db.query.category.findFirst({
+        where: eq(category.id, subcategoryResult.categoryId)
+      })
 
       if (!categoryResult) {
         return left(
@@ -139,21 +156,62 @@ export async function listPostsByCategoryOrSubcategory(
     const hasNext = page < totalPages
     const hasPrevious = page > 1
 
-    const posts = await db
-      .select()
-      .from(post)
-      .where(
-        and(
-          eq(post.subcategoryId, subcategoryData.id),
-          eq(post.status, 'published')
-        )
-      )
-      .limit(perPage)
-      .offset(offset)
+    // const posts = await db
+    //   .select()
+    //   .from(post)
+    //   .where(
+    //     and(
+    //       eq(post.subcategoryId, subcategoryData.id),
+    //       eq(post.status, 'published')
+    //     )
+    //   )
+    //   .limit(perPage)
+    //   .offset(offset)
+
+    const posts = await db.query.post.findMany({
+      where: and(
+        eq(post.subcategoryId, subcategoryData.id),
+        eq(post.status, 'published')
+      ),
+      limit: perPage,
+      offset: offset,
+      columns: {
+        id: false,
+        authorId: false,
+        subcategoryId: false
+      },
+      with: {
+        author: {
+          columns: {
+            name: true,
+            image: true
+          }
+        },
+        subcategory: {
+          columns: {
+            name: true,
+            slug: true,
+            description: true
+          },
+          with: {
+            category: {
+              columns: {
+                name: true,
+                slug: true,
+                description: true
+              }
+            }
+          }
+        }
+      }
+    })
+
+    const { id: categoryId, ...publicCategoryData } = categoryData
+    const { id: subcategoryId, ...publicSubcategoryData } = subcategoryData
 
     return right({
-      category: categoryData,
-      subcategory: subcategoryData,
+      category: publicCategoryData,
+      subcategory: publicSubcategoryData,
       posts,
       pagination: {
         total,

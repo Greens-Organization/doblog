@@ -6,20 +6,20 @@ import {
   ValidationError
 } from '@/core/error/errors'
 import { db } from '@/infra/db'
-import type { DPost } from '@/infra/db/schemas/blog'
 import { post } from '@/infra/db/schemas/blog'
 import { extractAndValidatePathParams } from '@/infra/helpers/params'
 import { logger } from '@/infra/lib/logger/logger-server'
 import { zod } from '@/infra/lib/zod'
 import { and, eq } from 'drizzle-orm'
+import type { IGetPostDTO } from '../../dto'
 
 const pathParamSchema = zod.object({
-  slug: zod.uuid('Invalid Post slug')
+  slug: zod.string().min(1, 'Slug is required')
 })
 
 export async function getPostBySlug(
   request: Request
-): Promise<AppEither<DPost>> {
+): Promise<AppEither<IGetPostDTO>> {
   try {
     const parsedParam = extractAndValidatePathParams(request, pathParamSchema, [
       'slug'
@@ -36,7 +36,36 @@ export async function getPostBySlug(
     const { slug } = parsedParam.data
 
     const foundPost = await db.query.post.findFirst({
-      where: and(eq(post.slug, slug), eq(post.status, 'published'))
+      where: and(eq(post.slug, slug), eq(post.status, 'published')),
+      columns: {
+        id: false,
+        authorId: false,
+        subcategoryId: false
+      },
+      with: {
+        author: {
+          columns: {
+            name: true,
+            image: true
+          }
+        },
+        subcategory: {
+          columns: {
+            name: true,
+            slug: true,
+            description: true
+          },
+          with: {
+            category: {
+              columns: {
+                name: true,
+                slug: true,
+                description: true
+              }
+            }
+          }
+        }
+      }
     })
 
     if (!foundPost) {
