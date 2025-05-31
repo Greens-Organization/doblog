@@ -15,7 +15,7 @@ const searchParamsSchema = zod.object({
 
 export async function listCategories(
   request: Request
-): Promise<AppEither<ICategoryDTO[]>> {
+): Promise<AppEither<Omit<ICategoryDTO, 'id'>[]>> {
   try {
     const url = new URL(request.url)
     const params = searchParamsSchema.parse({
@@ -35,7 +35,21 @@ export async function listCategories(
 
     const whereClause = filters.length > 0 ? and(...filters) : undefined
 
-    const result = await db.select().from(category).where(whereClause)
+    const result = await db.query.category.findMany({
+      where: whereClause,
+      columns: {
+        id: false
+      },
+      with: {
+        subcategory: {
+          columns: {
+            name: true,
+            slug: true,
+            description: true
+          }
+        }
+      }
+    })
 
     //TODO: add total quantity of items in each category
     return right(result)

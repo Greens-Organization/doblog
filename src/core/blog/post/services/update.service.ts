@@ -11,13 +11,13 @@ import { db } from '@/infra/db'
 import { category, post, subcategory } from '@/infra/db/schemas/blog'
 import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { AccessHandler } from '@/infra/helpers/handlers/access-handler'
-import { extractAndValidatePathParam } from '@/infra/helpers/params'
 import { logger } from '@/infra/lib/logger/logger-server'
 import { zod } from '@/infra/lib/zod'
 import { createPostSchema } from '@/infra/validations/schemas/post'
 import { eq } from 'drizzle-orm'
 import { UserRole } from '../../user/dto'
 import type { IPostDTO } from '../dto'
+import { extractAndValidatePathParams } from '@/infra/helpers/params'
 
 const pathParamSchema = zod.object({
   id: zod.uuid('Invalid Post ID')
@@ -44,7 +44,9 @@ export async function updatePost(
     }
     // TODO: Add a check for the user's permissions to create a post in a specific category
 
-    const parsedParam = extractAndValidatePathParam(request, pathParamSchema)
+    const parsedParam = extractAndValidatePathParams(request, pathParamSchema, [
+      'id'
+    ])
     if (!parsedParam.success) {
       return left(
         new ValidationError(

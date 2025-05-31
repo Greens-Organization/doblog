@@ -8,7 +8,7 @@ import {
 import { db } from '@/infra/db'
 import type { DPost } from '@/infra/db/schemas/blog'
 import { post } from '@/infra/db/schemas/blog'
-import { extractAndValidatePathParam } from '@/infra/helpers/params'
+import { extractAndValidatePathParams } from '@/infra/helpers/params'
 import { logger } from '@/infra/lib/logger/logger-server'
 import { zod } from '@/infra/lib/zod'
 import { and, eq } from 'drizzle-orm'
@@ -21,7 +21,9 @@ export async function getPostBySlug(
   request: Request
 ): Promise<AppEither<DPost>> {
   try {
-    const parsedParam = extractAndValidatePathParam(request, pathParamSchema)
+    const parsedParam = extractAndValidatePathParams(request, pathParamSchema, [
+      'slug'
+    ])
     if (!parsedParam.success) {
       return left(
         new ValidationError(
