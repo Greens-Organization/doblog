@@ -4,6 +4,7 @@ import { account, session, user, verification } from '@/infra/db/schemas/auth'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { nextCookies } from 'better-auth/next-js'
+import { organization } from 'better-auth/plugins'
 import { socialProviders } from './providers'
 
 export const auth = betterAuth({
@@ -27,7 +28,7 @@ export const auth = betterAuth({
     maxPasswordLength: 128
   },
   socialProviders: socialProviders[0],
-  plugins: [nextCookies()],
+  plugins: [nextCookies(), organization()],
   user: {
     additionalFields: {
       role: {
