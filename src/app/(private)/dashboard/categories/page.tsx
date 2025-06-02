@@ -1,3 +1,4 @@
+import { listCategories } from '@/actions/blog/category/list-categories'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,37 +14,13 @@ import { PlusCircle, Search } from 'lucide-react'
 import Link from 'next/link'
 import { DashNavbar } from '../components/dash-navbar'
 
-export default function CategoriesPage() {
-  const categories = [
-    {
-      id: 1,
-      name: 'Tecnologia',
-      slug: 'tecnologia',
-      postCount: 42,
-      subcategories: 5
-    },
-    {
-      id: 2,
-      name: 'Design',
-      slug: 'design',
-      postCount: 28,
-      subcategories: 4
-    },
-    {
-      id: 3,
-      name: 'Marketing',
-      slug: 'marketing',
-      postCount: 35,
-      subcategories: 4
-    },
-    {
-      id: 4,
-      name: 'Negócios',
-      slug: 'negocios',
-      postCount: 21,
-      subcategories: 4
-    }
-  ]
+export default async function CategoriesPage() {
+  const categories = await listCategories()
+
+  if (!categories.success) {
+    // TODO: add error message
+    return 'Error'
+  }
 
   return (
     <section>
@@ -86,28 +63,37 @@ export default function CategoriesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {categories.map((category) => (
-                <TableRow key={category.id}>
+              {categories.data.map((category, i) => (
+                <TableRow key={String(i)}>
                   <TableCell className="font-medium">{category.name}</TableCell>
                   <TableCell>{category.slug}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">{category.postCount}</Badge>
+                    <Badge variant="outline">{0}</Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{category.subcategories}</Badge>
+                    <Badge variant="outline">
+                      {category.subcategory.length}
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button variant="ghost" size="sm" asChild>
                         <Link
-                          href={`/dashboard/categories/edit/${category.id}`}
+                          href={`/dashboard/categories/${category.slug}/posts`}
+                        >
+                          Posts
+                        </Link>
+                      </Button>
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link
+                          href={`/dashboard/categories/edit/${category.slug}`}
                         >
                           Editar
                         </Link>
                       </Button>
                       <Button variant="ghost" size="sm" asChild>
                         <Link
-                          href={`/dashboard/categories/${category.id}/subcategories`}
+                          href={`/dashboard/categories/${category.slug}/subcategories`}
                         >
                           Subcategorias
                         </Link>

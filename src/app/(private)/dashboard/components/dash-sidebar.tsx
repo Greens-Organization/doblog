@@ -1,10 +1,4 @@
-import {
-  FileText,
-  FolderTree,
-  Home,
-  LayoutDashboard,
-  Users
-} from 'lucide-react'
+import { FolderTree, Home, LayoutDashboard, Users } from 'lucide-react'
 
 import {
   Sidebar,
@@ -30,11 +24,6 @@ const items = [
     title: 'Dashboard',
     url: '/dashboard',
     icon: LayoutDashboard
-  },
-  {
-    title: 'Postagens',
-    url: '/dashboard/posts',
-    icon: FileText
   },
   {
     title: 'Categorias',

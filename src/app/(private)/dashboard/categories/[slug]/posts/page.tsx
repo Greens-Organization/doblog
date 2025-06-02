@@ -1,3 +1,4 @@
+import { listPosts } from '@/actions/blog/posts/list-posts'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,59 +19,33 @@ import {
 } from '@/components/ui/table'
 import { PlusCircle, Search } from 'lucide-react'
 import Link from 'next/link'
-import { DashNavbar } from '../components/dash-navbar'
+import { DashNavbar } from '../../../components/dash-navbar'
 
-export default function PostsPage() {
-  // Simulação de posts - em produção, viriam do banco de dados
-  const posts = [
-    {
-      id: 1,
-      title: 'Introdução ao Next.js 14',
-      category: 'Tecnologia',
-      status: 'Publicado',
-      date: '15/12/2023',
-      author: 'João Silva'
-    },
-    {
-      id: 2,
-      title: 'Tailwind CSS v4: O que esperar',
-      category: 'Tecnologia',
-      status: 'Publicado',
-      date: '10/12/2023',
-      author: 'Maria Oliveira'
-    },
-    {
-      id: 3,
-      title: 'TypeScript: Dicas para iniciantes',
-      category: 'Tecnologia',
-      status: 'Publicado',
-      date: '05/12/2023',
-      author: 'Pedro Santos'
-    },
-    {
-      id: 4,
-      title: 'React Server Components explicados',
-      category: 'Tecnologia',
-      status: 'Publicado',
-      date: '28/11/2023',
-      author: 'Ana Costa'
-    },
-    {
-      id: 5,
-      title: 'Tendências de UI/UX para 2024',
-      category: 'Design',
-      status: 'Rascunho',
-      date: '20/11/2023',
-      author: 'Carlos Mendes'
-    }
-  ]
+interface PageProps {
+  params: Promise<{ slug: string }>
+}
+
+export default async function PostsPage({ params }: PageProps) {
+  const { slug } = await params
+  const res = await listPosts(slug)
+
+  if (!res.success) {
+    // TODO: add error message
+    return 'Error'
+  }
+
+  const { category, posts } = res.data
 
   return (
     <section>
       <DashNavbar
         navigation={[
           { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Postagens', href: '/dashboard/posts' }
+          { label: 'Categorias', href: '/dashboard/categories' },
+          {
+            label: 'Posts',
+            href: `/dashboard/categories/${category.slug}/posts`
+          }
         ]}
       />
       <div className="flex flex-col gap-4 p-4">
@@ -95,18 +70,6 @@ export default function PostsPage() {
           </div>
           <Select defaultValue="all">
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas Categorias</SelectItem>
-              <SelectItem value="tecnologia">Tecnologia</SelectItem>
-              <SelectItem value="design">Design</SelectItem>
-              <SelectItem value="marketing">Marketing</SelectItem>
-              <SelectItem value="negocios">Negócios</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select defaultValue="all">
-            <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -129,30 +92,32 @@ export default function PostsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {posts.map((post) => (
-                <TableRow key={post.id}>
+              {posts.map((post, i) => (
+                <TableRow key={String(i)}>
                   <TableCell className="font-medium">{post.title}</TableCell>
-                  <TableCell>{post.category}</TableCell>
+                  <TableCell>{category.name}</TableCell>
                   <TableCell>
                     <Badge
                       variant={
-                        post.status === 'Publicado' ? 'default' : 'outline'
+                        post.status === 'published' ? 'default' : 'outline'
                       }
                     >
-                      {post.status}
+                      {post.status === 'published' ? 'Publicado' : 'Rascunho'}
                     </Badge>
                   </TableCell>
-                  <TableCell>{post.date}</TableCell>
-                  <TableCell>{post.author}</TableCell>
+                  <TableCell>
+                    {new Date(post.createdAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>{post.author.name}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/dashboard/posts/edit/${post.id}`}>
+                        <Link href={`/dashboard/posts/edit/${post.slug}`}>
                           Editar
                         </Link>
                       </Button>
                       <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/posts/${post.id}`} target="_blank">
+                        <Link href={`/posts/${post.slug}`} target="_blank">
                           Visualizar
                         </Link>
                       </Button>

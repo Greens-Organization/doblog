@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { Save } from 'lucide-react'
 import { useState } from 'react'
-import { DashNavbar } from '../../components/dash-navbar'
+import { DashNavbar } from '../../../../components/dash-navbar'
 
 export default function NewPostPage() {
   const [title, setTitle] = useState('')
