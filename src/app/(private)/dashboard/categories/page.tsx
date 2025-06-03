@@ -10,9 +10,11 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
-import { PlusCircle, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 import Link from 'next/link'
 import { DashNavbar } from '../components/dash-navbar'
+import { NewCategorySheet } from './components/new-category-sheet'
+import { UpdateCategorySheet } from './components/update-category-sheet'
 
 export default async function CategoriesPage() {
   const categories = await listCategories()
@@ -38,12 +40,7 @@ export default async function CategoriesPage() {
               Gerencie as categorias e subcategorias do blog.
             </p>
           </div>
-          <Button asChild>
-            <Link href="/dashboard/categories/new">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Nova Categoria
-            </Link>
-          </Button>
+          <NewCategorySheet />
         </div>
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
@@ -84,13 +81,12 @@ export default async function CategoriesPage() {
                           Posts
                         </Link>
                       </Button>
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link
-                          href={`/dashboard/categories/edit/${category.slug}`}
-                        >
-                          Editar
-                        </Link>
-                      </Button>
+                      <UpdateCategorySheet
+                        id={category.id}
+                        description={category.description || ''}
+                        name={category.name}
+                        slug={category.slug}
+                      />
                       <Button variant="ghost" size="sm" asChild>
                         <Link
                           href={`/dashboard/categories/${category.slug}/subcategories`}
