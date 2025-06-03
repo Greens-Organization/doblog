@@ -15,7 +15,7 @@ import { zod } from '@/infra/lib/zod'
 import { updateCategorySchema } from '@/infra/validations/schemas/category'
 import { logger } from 'better-auth'
 import { and, eq, ne } from 'drizzle-orm'
-import type { ISubcategoryDTO } from '../dto'
+import type { ISubcategoryDTO } from '../../subcategory/dto'
 
 const pathParamSchema = zod.object({
   id: zod.uuid('Invalid category ID')
