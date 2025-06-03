@@ -15,6 +15,7 @@ import { cn } from '@/infra/lib/utils'
 import { Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
+import { SignInForm, SignUpForm } from './auth-form'
 
 export default function AuthCard({
   title,
@@ -39,12 +40,9 @@ export default function AuthCard({
       </CardHeader>
       <CardContent>
         <div className="grid gap-4">
-          <div
-            className={cn(
-              'w-full gap-2 flex items-center',
-              'justify-between flex-col'
-            )}
-          >
+          <div className={cn('w-full gap-2 flex', 'justify-between flex-col')}>
+            {mode === 'sign-in' ? <SignInForm /> : <SignUpForm />}
+            <hr />
             <SignInButton
               title="Sign in with Github"
               provider="github"

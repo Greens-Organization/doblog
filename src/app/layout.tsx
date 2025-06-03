@@ -1,11 +1,11 @@
 import type { Metadata } from 'next'
-import { Inter, JetBrains_Mono, Manrope } from 'next/font/google'
+import { Inter, JetBrains_Mono } from 'next/font/google'
 import '@/styles/globals.css'
 import RootProviders from '@/components/providers'
 import { siteConfig } from '@/config/site.config'
 import { cn } from '@/infra/lib/utils'
 
-const fontSans = Manrope({
+const fontSans = Inter({
   variable: '--font-sans',
   subsets: ['latin']
 })

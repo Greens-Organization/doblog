@@ -1,17 +1,10 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { cn } from '@/infra/lib/utils'
-import { MoonIcon, SunIcon } from 'lucide-react'
-import { useTheme } from 'next-themes'
+import { useTheme as useNextTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 
-type ThemeTogglerProps = {
-  className?: string
-}
-
-export default function ThemeToggler({ className }: ThemeTogglerProps) {
-  const { theme, setTheme } = useTheme()
+export default function useTheme() {
+  const { theme, setTheme } = useNextTheme()
   const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>('light')
 
   useEffect(() => {
@@ -43,22 +36,12 @@ export default function ThemeToggler({ className }: ThemeTogglerProps) {
   }
 
   const toggleTheme = () => {
-    //@ts-ignore
     if (!document.startViewTransition) switchTheme()
 
-    //@ts-ignore
-    document.startViewTransition(switchTheme)
+    if (document.startViewTransition) {
+      document.startViewTransition(switchTheme)
+    }
   }
 
-  return (
-    <Button
-      onClick={toggleTheme}
-      variant="ghost"
-      className={cn('size-14 aspect-square p-0', className)}
-    >
-      <SunIcon className="size-4 md:size-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-      <MoonIcon className="absolute size-4 md:size-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-      <span className="sr-only">Toggle theme</span>
-    </Button>
-  )
+  return { toggleTheme, theme, setTheme }
 }
