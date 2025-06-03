@@ -17,7 +17,6 @@ export const auth = betterAuth({
       verification
     }
   }),
-
   emailAndPassword: {
     enabled: true, // TODO: Add this on env to setup if application use this or socialProviders
     password: {
@@ -28,7 +27,14 @@ export const auth = betterAuth({
     maxPasswordLength: 128
   },
   socialProviders: socialProviders[0],
-  plugins: [nextCookies(), organization()],
+  plugins: [
+    nextCookies(),
+    organization({
+      organizationCreation: {
+        disabled: true
+      }
+    })
+  ],
   user: {
     additionalFields: {
       role: {
