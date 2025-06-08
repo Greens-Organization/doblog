@@ -55,7 +55,7 @@ async function seed() {
           email: env.ADMIN_EMAIL,
           emailVerified: true,
           role: 'admin',
-          image: generateRandomURLAvatar({ type: 'lorelei-neutral' }),
+          image: generateRandomURLAvatar({ type: 'notionists' }),
           createdAt: new Date(),
           updatedAt: new Date()
         })
@@ -91,7 +91,7 @@ async function seed() {
           email: 'editor@editor.com',
           emailVerified: true,
           role: 'editor',
-          image: generateRandomURLAvatar({ type: 'lorelei-neutral' }),
+          image: generateRandomURLAvatar({ type: 'notionists' }),
           createdAt: new Date(),
           updatedAt: new Date()
         })
