@@ -4,6 +4,7 @@ import { db } from '..'
 import { makePasswordHasher } from '../../cryptography/password'
 import { slug } from '../../helpers/string'
 import { logger } from '../../lib/logger/logger-server'
+import { member, organization } from '../schemas/auth'
 import { account } from '../schemas/auth/account'
 import { user } from '../schemas/auth/user'
 import { post } from '../schemas/blog'
@@ -17,7 +18,8 @@ async function seed() {
 
     try {
       logger.info('Clear DB...')
-      await db.delete(user)
+      await db.delete(organization)
+      await db.delete(member)
       await db.delete(account)
       await db.delete(post)
       await db.delete(category)
@@ -28,6 +30,19 @@ async function seed() {
     }
 
     try {
+      logger.info('Seed - Create Org!')
+      const name = 'Doblog'
+      const [orgData] = await db
+        .insert(organization)
+        .values({
+          name,
+          slug: slug(name),
+          logo: `https://api.dicebear.com/9.x/glass/svg?seed=${Math.floor(Math.random() * 1000)}`,
+          description: 'Create your blog with Doblog'
+        })
+        .returning()
+      logger.info('Seed - Org created!')
+
       logger.info('Seed - Create users!')
       logger.info('Seed - Creating admin!')
       const [newUser] = await db
@@ -37,6 +52,7 @@ async function seed() {
           email: env.ADMIN_EMAIL,
           emailVerified: true,
           role: 'admin',
+          image: `https://api.dicebear.com/9.x/glass/svg?seed=${Math.floor(Math.random() * 1000)}`,
           createdAt: new Date(),
           updatedAt: new Date()
         })
@@ -51,6 +67,15 @@ async function seed() {
           password: await makePasswordHasher().hash(env.ADMIN_PASSWORD),
           createdAt: new Date(),
           updatedAt: new Date()
+        })
+        .returning()
+
+      await db
+        .insert(member)
+        .values({
+          organizationId: orgData.id,
+          userId: newUser.id,
+          role: 'admin'
         })
         .returning()
       logger.info('Seed - Admin created!')
@@ -77,6 +102,15 @@ async function seed() {
           password: await makePasswordHasher().hash('321editor.'),
           createdAt: new Date(),
           updatedAt: new Date()
+        })
+        .returning()
+
+      await db
+        .insert(member)
+        .values({
+          organizationId: orgData.id,
+          userId: newEditorUser.id,
+          role: 'editor'
         })
         .returning()
       logger.info('Seed - Editor created!')
