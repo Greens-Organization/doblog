@@ -1,3 +1,4 @@
+import { ac, admin, editor } from '@/core/auth/permissions'
 import { makePasswordHasher } from '@/infra/cryptography/password'
 import { db } from '@/infra/db'
 import { account, session, user, verification } from '@/infra/db/schemas/auth'
@@ -17,6 +18,12 @@ export const auth = betterAuth({
       verification
     }
   }),
+  advanced: {
+    defaultCookieAttributes: {
+      secure: true,
+      httpOnly: true
+    }
+  },
   emailAndPassword: {
     enabled: true, // TODO: Add this on env to setup if application use this or socialProviders
     password: {
@@ -32,6 +39,11 @@ export const auth = betterAuth({
     organization({
       organizationCreation: {
         disabled: true
+      },
+      ac,
+      roles: {
+        admin,
+        editor
       }
     })
   ],

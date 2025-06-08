@@ -1,4 +1,7 @@
 import * as account from './schemas/auth/account'
+import * as invitation from './schemas/auth/invitation'
+import * as member from './schemas/auth/member'
+import * as organization from './schemas/auth/organization'
 import * as session from './schemas/auth/session'
 import * as user from './schemas/auth/user'
 import * as verification from './schemas/auth/verification'
@@ -13,6 +16,9 @@ export const schema = {
   ...session,
   ...account,
   ...verification,
+  ...invitation,
+  ...organization,
+  ...member,
 
   // blog
   ...post,
