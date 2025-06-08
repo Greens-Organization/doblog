@@ -8,6 +8,7 @@ export const organization = pgTable('organization', {
   slug: text('slug').unique(),
   description: text('description'),
   logo: text('logo'),
+  keywords: text('keywords'),
   createdAt: createdAt,
   updatedAt: updatedAt,
   metadata: text('metadata')
