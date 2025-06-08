@@ -1,4 +1,5 @@
 import { env } from '@/env'
+import { generateRandomURLAvatar } from '@/infra/helpers/dicebear'
 import { and, eq } from 'drizzle-orm'
 import { db } from '..'
 import { makePasswordHasher } from '../../cryptography/password'
@@ -37,8 +38,10 @@ async function seed() {
         .values({
           name,
           slug: slug(name),
-          logo: `https://api.dicebear.com/9.x/glass/svg?seed=${Math.floor(Math.random() * 1000)}`,
-          description: 'Create your blog with Doblog'
+          logo: generateRandomURLAvatar(),
+          description: 'Create your blog with Doblog',
+          keywords:
+            'create a blog; self-hosting blog; edit my blog; nextjs blog;greens group; grn; '
         })
         .returning()
       logger.info('Seed - Org created!')
@@ -48,11 +51,11 @@ async function seed() {
       const [newUser] = await db
         .insert(user)
         .values({
-          name: 'Admin PErson',
+          name: 'Admin Person',
           email: env.ADMIN_EMAIL,
           emailVerified: true,
           role: 'admin',
-          image: `https://api.dicebear.com/9.x/glass/svg?seed=${Math.floor(Math.random() * 1000)}`,
+          image: generateRandomURLAvatar({ type: 'lorelei-neutral' }),
           createdAt: new Date(),
           updatedAt: new Date()
         })
@@ -88,6 +91,7 @@ async function seed() {
           email: 'editor@editor.com',
           emailVerified: true,
           role: 'editor',
+          image: generateRandomURLAvatar({ type: 'lorelei-neutral' }),
           createdAt: new Date(),
           updatedAt: new Date()
         })
