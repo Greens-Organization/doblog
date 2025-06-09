@@ -1,5 +1,5 @@
 import type { AppEither } from '@/core/error/app-either.protocols'
-import { isLeft, left, right } from '@/core/error/either'
+import { left, right } from '@/core/error/either'
 import {
   ConflictError,
   NotFoundError,
@@ -9,12 +9,10 @@ import {
 import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { post } from '@/infra/db/schemas/blog'
-import { ensureAuthenticated } from '@/infra/helpers/auth'
-import { AccessHandler } from '@/infra/helpers/handlers/access-handler'
 import { extractAndValidatePathParams } from '@/infra/helpers/params'
+import { auth } from '@/infra/lib/better-auth/auth'
 import { zod } from '@/infra/lib/zod'
 import { eq } from 'drizzle-orm'
-import { UserRole } from '../../user/dto'
 import type { IPostDTO } from '../dto'
 
 const pathParamSchema = zod.object({
@@ -25,19 +23,21 @@ export async function publishPost(
   request: Request
 ): Promise<AppEither<IPostDTO>> {
   try {
-    const sessionResult = await ensureAuthenticated(request)
-    if (isLeft(sessionResult)) return sessionResult
+    const canAccess = await auth.api.hasPermission({
+      headers: request.headers,
+      body: {
+        permissions: {
+          post: ['moveToDraft']
+        }
+      }
+    })
 
-    if (
-      !AccessHandler.hasAccessByRole(sessionResult.value?.user.role, [
-        UserRole.ADMIN,
-        UserRole.EDITOR
-      ])
-    ) {
+    if (!canAccess.success) {
       return left(
-        new UnauthorizedError('Access denied: Admins and Editors only')
+        new UnauthorizedError('You do not have permission to do this')
       )
     }
+    // TODO: Add a check for the user's permissions to create a post in a specific category
 
     const parsedParam = extractAndValidatePathParams(request, pathParamSchema, [
       'id'

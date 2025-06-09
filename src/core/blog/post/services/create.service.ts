@@ -9,32 +9,33 @@ import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { category, post, subcategory } from '@/infra/db/schemas/blog'
 import { ensureAuthenticated } from '@/infra/helpers/auth'
-import { AccessHandler } from '@/infra/helpers/handlers/access-handler'
+import { auth } from '@/infra/lib/better-auth/auth'
 import type { zod } from '@/infra/lib/zod'
 import { createPostSchema } from '@/infra/validations/schemas/post'
 import { eq } from 'drizzle-orm'
-import { UserRole } from '../../user/dto'
 import type { IPostDTO } from '../dto'
 
 export async function createPost(
   request: Request
 ): Promise<AppEither<IPostDTO>> {
   try {
+    const canAccess = await auth.api.hasPermission({
+      headers: request.headers,
+      body: {
+        permissions: {
+          post: ['create']
+        }
+      }
+    })
+
+    if (!canAccess.success) {
+      return left(
+        new UnauthorizedError('You do not have permission to do this')
+      )
+    }
     const sessionResult = await ensureAuthenticated(request)
     if (isLeft(sessionResult)) return sessionResult
 
-    // Check if user has access to create a post
-    if (
-      !sessionResult.value ||
-      !AccessHandler.hasAccessByRole(sessionResult.value.user.role, [
-        UserRole.ADMIN,
-        UserRole.EDITOR
-      ])
-    ) {
-      return left(
-        new UnauthorizedError('Access denied: Admins and Editor only')
-      )
-    }
     // TODO: Add a check for the user's permissions to create a post in a specific category
 
     const bodyData = await request.json()

@@ -1,16 +1,16 @@
 import type { AppEither } from '@/core/error/app-either.protocols'
-import { isLeft, left, right } from '@/core/error/either'
+import { left, right } from '@/core/error/either'
 import {
   ConflictError,
   NotFoundError,
+  UnauthorizedError,
   ValidationError
 } from '@/core/error/errors'
 import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { subcategory } from '@/infra/db/schemas/blog'
-import { ensureAuthenticated } from '@/infra/helpers/auth'
-import { ensureIsAdmin } from '@/infra/helpers/auth/ensure-is-admin'
 import { extractAndValidatePathParams } from '@/infra/helpers/params'
+import { auth } from '@/infra/lib/better-auth/auth'
 import { zod } from '@/infra/lib/zod'
 import { updateCategorySchema } from '@/infra/validations/schemas/category'
 import { logger } from 'better-auth'
@@ -25,11 +25,20 @@ export async function updateSubcategory(
   request: Request
 ): Promise<AppEither<ISubcategoryDTO>> {
   try {
-    const sessionResult = await ensureAuthenticated(request)
-    if (isLeft(sessionResult)) return sessionResult
+    const canAccess = await auth.api.hasPermission({
+      headers: request.headers,
+      body: {
+        permissions: {
+          subcategory: ['update']
+        }
+      }
+    })
 
-    const isAdmin = ensureIsAdmin(sessionResult.value)
-    if (isLeft(isAdmin)) return isAdmin
+    if (!canAccess.success) {
+      return left(
+        new UnauthorizedError('You do not have permission to do this')
+      )
+    }
 
     const parsedParam = extractAndValidatePathParams(request, pathParamSchema, [
       'id'

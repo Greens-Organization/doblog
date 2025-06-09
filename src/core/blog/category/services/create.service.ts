@@ -1,12 +1,15 @@
 import type { ICategoryDTO } from '@/core/blog/category/dto'
 import type { AppEither } from '@/core/error/app-either.protocols'
-import { isLeft, left, right } from '@/core/error/either'
-import { ConflictError, ValidationError } from '@/core/error/errors'
+import { left, right } from '@/core/error/either'
+import {
+  ConflictError,
+  UnauthorizedError,
+  ValidationError
+} from '@/core/error/errors'
 import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { category, subcategory } from '@/infra/db/schemas/blog'
-import { ensureAuthenticated } from '@/infra/helpers/auth'
-import { ensureIsAdmin } from '@/infra/helpers/auth/ensure-is-admin'
+import { auth } from '@/infra/lib/better-auth/auth'
 import type { zod } from '@/infra/lib/zod'
 import { createCategorySchema } from '@/infra/validations/schemas/category'
 import { eq } from 'drizzle-orm'
@@ -15,11 +18,20 @@ export async function createCategory(
   request: Request
 ): Promise<AppEither<ICategoryDTO>> {
   try {
-    const sessionResult = await ensureAuthenticated(request)
-    if (isLeft(sessionResult)) return sessionResult
+    const canAccess = await auth.api.hasPermission({
+      headers: request.headers,
+      body: {
+        permissions: {
+          category: ['create']
+        }
+      }
+    })
 
-    const isAdmin = ensureIsAdmin(sessionResult.value)
-    if (isLeft(isAdmin)) return isAdmin
+    if (!canAccess.success) {
+      return left(
+        new UnauthorizedError('You do not have permission to do this')
+      )
+    }
 
     const bodyData = await request.json()
 

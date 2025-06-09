@@ -2,7 +2,7 @@ import { createAccessControl } from 'better-auth/plugins/access'
 
 const statement = {
   blog: ['read', 'update', 'delete'],
-  post: ['read', 'create', 'update', 'archive', 'publish'],
+  post: ['read', 'create', 'update', 'archive', 'publish', 'moveToDraft'],
   category: ['read', 'create', 'update', 'delete'],
   subcategory: ['read', 'create', 'update', 'delete'],
   user: ['read', 'create', 'update', 'delete']
@@ -20,7 +20,7 @@ const admin = ac.newRole({
 
 const editor = ac.newRole({
   blog: ['read'],
-  post: ['create', 'update', 'archive', 'publish']
+  post: ['read', 'create', 'update', 'archive', 'publish', 'moveToDraft']
 })
 
 export { ac, admin, editor }
