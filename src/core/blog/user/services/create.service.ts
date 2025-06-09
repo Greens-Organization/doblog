@@ -1,6 +1,7 @@
 import type { AppEither } from '@/core/error/app-either.protocols'
 import { left, right } from '@/core/error/either'
 import {
+  ConflictError,
   NotFoundError,
   UnauthorizedError,
   ValidationError
@@ -12,7 +13,7 @@ import { category } from '@/infra/db/schemas/blog'
 import { auth } from '@/infra/lib/better-auth/auth'
 import type { zod } from '@/infra/lib/zod'
 import { createUserSchema } from '@/infra/validations/schemas/user'
-import { inArray } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 import { blogRepository } from '../../repository'
 import type { IUserDTO } from '../dto'
 
@@ -52,9 +53,20 @@ export async function createUser(
       )
     }
 
+    const existingUser = await db.query.user.findFirst({
+      where: eq(user.email, parsed.data.email)
+    })
+    if (existingUser) {
+      return left(new ConflictError('User with this email already exists'))
+    }
+
     const categories = await db.query.category.findMany({
       where: inArray(category.id, parsed.data.categories)
     })
+
+    if (parsed.data.categories.length !== categories.length) {
+      return left(new NotFoundError('Some categories not found'))
+    }
 
     const result = await db.transaction(async (tx) => {
       const [newUser] = await tx
