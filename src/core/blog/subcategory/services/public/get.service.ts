@@ -1,14 +1,10 @@
 import type { AppEither } from '@/core/error/app-either.protocols'
 import { left, right } from '@/core/error/either'
-import {
-  DatabaseError,
-  NotFoundError,
-  ValidationError
-} from '@/core/error/errors'
+import { NotFoundError, ValidationError } from '@/core/error/errors'
+import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { subcategory } from '@/infra/db/schemas/blog'
 import { extractAndValidatePathParams } from '@/infra/helpers/params'
-import { logger } from '@/infra/lib/logger/logger-server'
 import { zod } from '@/infra/lib/zod'
 import { eq } from 'drizzle-orm'
 import type { ISubcategoryDTO } from '../../dto'
@@ -60,11 +56,6 @@ export async function getSubcategory(
 
     return right(result)
   } catch (error) {
-    if (error instanceof zod.ZodError) {
-      return left(new ValidationError('Invalid subcategory ID'))
-    }
-
-    logger.error('DB error in get subcategory:', error)
-    return left(new DatabaseError())
+    return left(serviceHandleError(error, 'getSubcategory'))
   }
 }

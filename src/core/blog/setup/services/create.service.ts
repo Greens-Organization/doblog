@@ -1,16 +1,12 @@
 import type { AppEither } from '@/core/error/app-either.protocols'
 import { left, right } from '@/core/error/either'
-import {
-  ConflictError,
-  DatabaseError,
-  ValidationError
-} from '@/core/error/errors'
+import { ConflictError, ValidationError } from '@/core/error/errors'
+import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { organization } from '@/infra/db/schemas/auth'
 import { slug } from '@/infra/helpers/string'
-import { zod } from '@/infra/lib/zod'
+import type { zod } from '@/infra/lib/zod'
 import { createBlogSchema } from '@/infra/validations/schemas/blog'
-import { logger } from 'better-auth'
 import type { IBlogDTO } from '../../dto'
 
 export async function createBlog(
@@ -44,13 +40,6 @@ export async function createBlog(
 
     return right({ body: data, statusCode: 201 })
   } catch (error) {
-    if (error instanceof zod.ZodError) {
-      return left(
-        new ValidationError(error.issues.map((e) => e.message).join('; '))
-      )
-    }
-
-    logger.error('Unhandled error in updateCategory:', error)
-    return left(new DatabaseError())
+    return left(serviceHandleError(error, 'createBlog'))
   }
 }

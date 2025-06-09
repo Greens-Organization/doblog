@@ -3,10 +3,10 @@ import type { AppEither } from '@/core/error/app-either.protocols'
 import { isLeft, left, right } from '@/core/error/either'
 import {
   ConflictError,
-  DatabaseError,
   NotFoundError,
   ValidationError
 } from '@/core/error/errors'
+import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { category } from '@/infra/db/schemas/blog'
 import { ensureAuthenticated } from '@/infra/helpers/auth'
@@ -14,7 +14,6 @@ import { ensureIsAdmin } from '@/infra/helpers/auth/ensure-is-admin'
 import { extractAndValidatePathParams } from '@/infra/helpers/params'
 import { zod } from '@/infra/lib/zod'
 import { updateCategorySchema } from '@/infra/validations/schemas/category'
-import { logger } from 'better-auth'
 import { and, eq, ne } from 'drizzle-orm'
 
 const pathParamSchema = zod.object({
@@ -86,13 +85,6 @@ export async function updateCategory(
 
     return right(updatedCategory)
   } catch (error) {
-    if (error instanceof zod.ZodError) {
-      return left(
-        new ValidationError(error.issues.map((e) => e.message).join('; '))
-      )
-    }
-
-    logger.error('Unhandled error in updateCategory:', error)
-    return left(new DatabaseError())
+    return left(serviceHandleError(error, 'updateCategory'))
   }
 }

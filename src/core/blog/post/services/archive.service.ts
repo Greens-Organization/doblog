@@ -2,17 +2,16 @@ import type { AppEither } from '@/core/error/app-either.protocols'
 import { isLeft, left, right } from '@/core/error/either'
 import {
   ConflictError,
-  DatabaseError,
   NotFoundError,
   UnauthorizedError,
   ValidationError
 } from '@/core/error/errors'
+import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { post } from '@/infra/db/schemas/blog'
 import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { AccessHandler } from '@/infra/helpers/handlers/access-handler'
 import { extractAndValidatePathParams } from '@/infra/helpers/params'
-import { logger } from '@/infra/lib/logger/logger-server'
 import { zod } from '@/infra/lib/zod'
 import { eq } from 'drizzle-orm'
 import { UserRole } from '../../user/dto'
@@ -77,14 +76,6 @@ export async function archivePost(
 
     return right(updatedPost)
   } catch (error) {
-    if (error instanceof zod.ZodError) {
-      return left(
-        new ValidationError(error.issues.map((e) => e.message).join('; '))
-      )
-    }
-
-    console.error(error)
-    logger.error('Unhandled error in archivePost:', error)
-    return left(new DatabaseError())
+    return left(serviceHandleError(error, 'archivePost'))
   }
 }

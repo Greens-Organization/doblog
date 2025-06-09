@@ -1,10 +1,9 @@
 import type { ICategoryDTO } from '@/core/blog/category/dto'
 import type { AppEither } from '@/core/error/app-either.protocols'
 import { left, right } from '@/core/error/either'
-import { DatabaseError, ValidationError } from '@/core/error/errors'
+import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { category } from '@/infra/db/schemas/blog'
-import { logger } from '@/infra/lib/logger/logger-server'
 import { zod } from '@/infra/lib/zod'
 import { and, eq } from 'drizzle-orm'
 
@@ -54,13 +53,6 @@ export async function listCategories(
     //TODO: add total quantity of items in each category
     return right(result)
   } catch (error) {
-    if (error instanceof zod.ZodError) {
-      return left(
-        new ValidationError(error.issues.map((e) => e.message).join('; '))
-      )
-    }
-
-    logger.error('DB error in getCategory:', error)
-    return left(new DatabaseError())
+    return left(serviceHandleError(error, 'listCategories'))
   }
 }

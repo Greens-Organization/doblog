@@ -2,14 +2,10 @@ import type { IPublicCategoryDTO } from '@/core/blog/category/dto'
 import type { IPublicSubcategoryDTO } from '@/core/blog/subcategory/dto'
 import type { AppEither } from '@/core/error/app-either.protocols'
 import { left, right } from '@/core/error/either'
-import {
-  DatabaseError,
-  NotFoundError,
-  ValidationError
-} from '@/core/error/errors'
+import { NotFoundError, ValidationError } from '@/core/error/errors'
+import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { category, post, subcategory } from '@/infra/db/schemas/blog'
-import { logger } from '@/infra/lib/logger/logger-server'
 import { zod } from '@/infra/lib/zod'
 import { and, count, eq } from 'drizzle-orm'
 import type { IGetPostDTO } from '../../dto'
@@ -223,17 +219,6 @@ export async function listPostsByCategoryOrSubcategory(
       }
     })
   } catch (error) {
-    if (error instanceof zod.ZodError) {
-      return left(
-        new ValidationError(
-          (error as zod.ZodError).issues
-            .map((e: { message: any }) => e.message)
-            .join('; ')
-        )
-      )
-    }
-
-    logger.error('DB error in listPostsByCategoryOrSubcategory:', error)
-    return left(new DatabaseError())
+    return left(serviceHandleError(error, 'listPostsByCategoryOrSubcategory'))
   }
 }

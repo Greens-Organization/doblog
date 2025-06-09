@@ -1,8 +1,8 @@
 import type { AppEither } from '@/core/error/app-either.protocols'
 import { left, right } from '@/core/error/either'
-import { DatabaseError, NotFoundError } from '@/core/error/errors'
+import { NotFoundError } from '@/core/error/errors'
+import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
-import { logger } from '@/infra/lib/logger/logger-server'
 import type { IBlogDTO } from '../dto'
 
 export async function getBlog(
@@ -21,7 +21,6 @@ export async function getBlog(
 
     return right(result)
   } catch (error) {
-    logger.error('DB error in getCategory:', error)
-    return left(new DatabaseError())
+    return left(serviceHandleError(error, 'getBlog'))
   }
 }

@@ -1,15 +1,12 @@
 import type { AppEither } from '@/core/error/app-either.protocols'
 import { left, right } from '@/core/error/either'
-import {
-  ConflictError,
-  DatabaseError,
-  ValidationError
-} from '@/core/error/errors'
+import { ConflictError, ValidationError } from '@/core/error/errors'
+import { serviceHandleError } from '@/core/error/handlers'
 import { makePasswordHasher } from '@/infra/cryptography/password'
 import { db } from '@/infra/db'
 import { account, member, user } from '@/infra/db/schemas/auth'
 import { auth } from '@/infra/lib/better-auth/auth'
-import { zod } from '@/infra/lib/zod'
+import type { zod } from '@/infra/lib/zod'
 import { createUserSchema } from '@/infra/validations/schemas/user'
 import type { IUserDTO } from '../../user/dto'
 
@@ -81,14 +78,6 @@ export async function createFirstUser(
       headers
     })
   } catch (error) {
-    if (error instanceof zod.ZodError) {
-      return left(
-        new ValidationError(error.issues.map((e) => e.message).join('; '))
-      )
-    }
-
-    console.error(error)
-
-    return left(new DatabaseError())
+    return left(serviceHandleError(error, 'createFirstUser'))
   }
 }

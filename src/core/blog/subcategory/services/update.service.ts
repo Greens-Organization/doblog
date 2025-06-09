@@ -2,10 +2,10 @@ import type { AppEither } from '@/core/error/app-either.protocols'
 import { isLeft, left, right } from '@/core/error/either'
 import {
   ConflictError,
-  DatabaseError,
   NotFoundError,
   ValidationError
 } from '@/core/error/errors'
+import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { subcategory } from '@/infra/db/schemas/blog'
 import { ensureAuthenticated } from '@/infra/helpers/auth'
@@ -107,13 +107,6 @@ export async function updateSubcategory(
 
     return right({ ...updatedCategory, category: existingSubcategory.category })
   } catch (error) {
-    if (error instanceof zod.ZodError) {
-      return left(
-        new ValidationError(error.issues.map((e) => e.message).join('; '))
-      )
-    }
-
-    logger.error('Unhandled error in updateCategory:', error)
-    return left(new DatabaseError())
+    return left(serviceHandleError(error, 'updateSubcategory'))
   }
 }
