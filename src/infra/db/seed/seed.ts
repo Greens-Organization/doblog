@@ -1,4 +1,3 @@
-import { env } from '@/env'
 import { generateRandomURLAvatar } from '@/infra/helpers/dicebear'
 import { and, eq } from 'drizzle-orm'
 import { db } from '..'
@@ -12,6 +11,23 @@ import { post } from '../schemas/blog'
 import { category } from '../schemas/blog/category'
 import { subcategory } from '../schemas/blog/subcategory'
 import postsData from './assets/posts.json'
+
+const users = {
+  admin: {
+    name: 'Admin Person',
+    email: 'admin@admin.com',
+    password: 'admin1234',
+    role: 'admin',
+    image: generateRandomURLAvatar({ type: 'notionists' })
+  },
+  editor: {
+    name: 'Editor Person',
+    email: 'editor@editor.com',
+    password: 'editor1234',
+    role: 'editor',
+    image: generateRandomURLAvatar({ type: 'notionists' })
+  }
+}
 
 async function seed() {
   try {
@@ -51,11 +67,11 @@ async function seed() {
       const [newUser] = await db
         .insert(user)
         .values({
-          name: 'Admin Person',
-          email: env.ADMIN_EMAIL,
+          name: users.admin.name,
+          email: users.admin.email,
           emailVerified: true,
           role: 'admin',
-          image: generateRandomURLAvatar({ type: 'notionists' }),
+          image: users.admin.image,
           createdAt: new Date(),
           updatedAt: new Date()
         })
@@ -67,7 +83,7 @@ async function seed() {
           accountId: crypto.randomUUID(),
           userId: newUser!.id,
           providerId: 'credential',
-          password: await makePasswordHasher().hash(env.ADMIN_PASSWORD),
+          password: await makePasswordHasher().hash(users.admin.password),
           createdAt: new Date(),
           updatedAt: new Date()
         })
@@ -87,11 +103,11 @@ async function seed() {
       const [newEditorUser] = await db
         .insert(user)
         .values({
-          name: 'Editor Person',
-          email: 'editor@editor.com',
+          name: users.editor.name,
+          email: users.editor.email,
           emailVerified: true,
           role: 'editor',
-          image: generateRandomURLAvatar({ type: 'notionists' }),
+          image: users.editor.image,
           createdAt: new Date(),
           updatedAt: new Date()
         })
@@ -103,7 +119,7 @@ async function seed() {
           accountId: crypto.randomUUID(),
           userId: newEditorUser!.id,
           providerId: 'credential',
-          password: await makePasswordHasher().hash('321editor.'),
+          password: await makePasswordHasher().hash(users.editor.password),
           createdAt: new Date(),
           updatedAt: new Date()
         })
