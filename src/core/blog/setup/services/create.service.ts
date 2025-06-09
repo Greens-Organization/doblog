@@ -28,15 +28,18 @@ export async function createBlog(
       )
     }
 
-    const [data] = await db
-      .insert(organization)
-      .values({
-        name: parsed.data.name,
-        slug: slug(parsed.data.name),
-        logo: parsed.data.logo,
-        description: parsed.data.description
-      })
-      .returning()
+    const [data] = await db.transaction(async (tx) => {
+      const [inserted] = await tx
+        .insert(organization)
+        .values({
+          name: parsed.data.name,
+          slug: slug(parsed.data.name),
+          logo: parsed.data.logo,
+          description: parsed.data.description
+        })
+        .returning()
+      return [inserted]
+    })
 
     return right({ body: data, statusCode: 201 })
   } catch (error) {

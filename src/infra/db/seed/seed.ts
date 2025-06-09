@@ -11,23 +11,7 @@ import { post } from '../schemas/blog'
 import { category } from '../schemas/blog/category'
 import { subcategory } from '../schemas/blog/subcategory'
 import postsData from './assets/posts.json'
-
-const users = {
-  admin: {
-    name: 'Admin Person',
-    email: 'admin@admin.com',
-    password: 'admin1234',
-    role: 'admin',
-    image: generateRandomURLAvatar({ type: 'notionists' })
-  },
-  editor: {
-    name: 'Editor Person',
-    email: 'editor@editor.com',
-    password: 'editor1234',
-    role: 'editor',
-    image: generateRandomURLAvatar({ type: 'notionists' })
-  }
-}
+import users from './assets/users.json'
 
 async function seed() {
   try {
@@ -71,7 +55,7 @@ async function seed() {
           email: users.admin.email,
           emailVerified: true,
           role: 'admin',
-          image: users.admin.image,
+          image: generateRandomURLAvatar({ type: 'notionists' }),
           createdAt: new Date(),
           updatedAt: new Date()
         })
@@ -107,7 +91,7 @@ async function seed() {
           email: users.editor.email,
           emailVerified: true,
           role: 'editor',
-          image: users.editor.image,
+          image: generateRandomURLAvatar({ type: 'notionists' }),
           createdAt: new Date(),
           updatedAt: new Date()
         })

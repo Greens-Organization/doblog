@@ -7,7 +7,7 @@ import { db } from '@/infra/db'
 import { account, member, user } from '@/infra/db/schemas/auth'
 import { auth } from '@/infra/lib/better-auth/auth'
 import type { zod } from '@/infra/lib/zod'
-import { createUserSchema } from '@/infra/validations/schemas/user'
+import { createFirstUserSchema } from '@/infra/validations/schemas/user'
 import type { IUserDTO } from '../../user/dto'
 
 export async function createFirstUser(
@@ -21,7 +21,7 @@ export async function createFirstUser(
     }
 
     const bodyData = await request.json()
-    const parsed = createUserSchema().safeParse(bodyData)
+    const parsed = createFirstUserSchema().safeParse(bodyData)
     if (!parsed.success) {
       return left(
         new ValidationError(
@@ -30,34 +30,32 @@ export async function createFirstUser(
       )
     }
 
-    const [newUser] = await db
-      .insert(user)
-      .values({
-        name: parsed.data.name,
-        email: parsed.data.email,
-        emailVerified: true,
-        role: 'admin'
-      })
-      .returning()
+    const newUser = await db.transaction(async (tx) => {
+      const [createdUser] = await tx
+        .insert(user)
+        .values({
+          name: parsed.data.name,
+          email: parsed.data.email,
+          emailVerified: true,
+          role: 'admin'
+        })
+        .returning()
 
-    const [accountData] = await db
-      .insert(account)
-      .values({
+      await tx.insert(account).values({
         accountId: crypto.randomUUID(),
-        userId: newUser!.id,
+        userId: createdUser!.id,
         providerId: 'credential',
         password: await makePasswordHasher().hash(parsed.data.password)
       })
-      .returning()
 
-    await db
-      .insert(member)
-      .values({
+      await tx.insert(member).values({
         organizationId: blogData.id,
-        userId: newUser.id,
+        userId: createdUser.id,
         role: 'admin'
       })
-      .returning()
+
+      return createdUser
+    })
 
     const { headers, response } = await auth.api.signInEmail({
       returnHeaders: true,

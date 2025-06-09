@@ -1,4 +1,4 @@
-import { env } from '@/env'
+import users from '@/infra/db/seed/assets/users.json'
 import { constants } from './constants'
 
 export async function signInAsAdmin() {
@@ -6,8 +6,8 @@ export async function signInAsAdmin() {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      email: env.ADMIN_EMAIL,
-      password: env.ADMIN_PASSWORD
+      email: users.admin.email,
+      password: users.admin.password
     })
   })
   if (response.status !== 200) throw new Error('Failed to sign in')
