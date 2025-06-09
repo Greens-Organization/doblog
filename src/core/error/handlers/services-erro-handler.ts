@@ -6,10 +6,15 @@ import { DatabaseError, ValidationError } from '../errors'
 
 export function serviceHandleError(error: unknown, origin = 'Unknown origin') {
   if (error instanceof ZodError) {
+    logger.error(
+      `ValidationError (${origin}):`,
+      error.issues.map((e) => e.message).join('; ')
+    )
     return new ValidationError(error.issues.map((e) => e.message).join('; '))
   }
 
   if (error instanceof APIError) {
+    logger.error(`BetterAuthError (${origin}):`, error, error.body?.message)
     return new BetterAuthError(error)
   }
 
