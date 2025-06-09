@@ -1,7 +1,7 @@
 import { zod } from '@/infra/lib/zod'
 import { passwordRegularValidator } from '../../primitives'
 
-export const createUser = () => {
+export const createUserSchema = () => {
   return zod.object({
     name: zod
       .string({ error: 'Name must be a valid string' })

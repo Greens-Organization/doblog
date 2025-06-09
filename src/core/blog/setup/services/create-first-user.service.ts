@@ -10,7 +10,7 @@ import { db } from '@/infra/db'
 import { account, member, user } from '@/infra/db/schemas/auth'
 import { auth } from '@/infra/lib/better-auth/auth'
 import { zod } from '@/infra/lib/zod'
-import { createUser } from '@/infra/validations/schemas/user/create.validation'
+import { createUserSchema } from '@/infra/validations/schemas/user'
 import type { IUserDTO } from '../../user/dto'
 
 export async function createFirstUser(
@@ -24,7 +24,7 @@ export async function createFirstUser(
     }
 
     const bodyData = await request.json()
-    const parsed = createUser().safeParse(bodyData)
+    const parsed = createUserSchema().safeParse(bodyData)
     if (!parsed.success) {
       return left(
         new ValidationError(
