@@ -65,6 +65,7 @@ export async function createUser(
     })
 
     if (parsed.data.categories.length !== categories.length) {
+      // TODO: Show which categories are not found
       return left(new NotFoundError('Some categories not found'))
     }
 
