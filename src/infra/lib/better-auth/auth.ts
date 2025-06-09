@@ -1,7 +1,16 @@
 import { ac, admin, editor } from '@/core/auth/permissions'
+import { blogRepository } from '@/core/blog/repository'
 import { makePasswordHasher } from '@/infra/cryptography/password'
 import { db } from '@/infra/db'
-import { account, session, user, verification } from '@/infra/db/schemas/auth'
+import {
+  account,
+  invitation,
+  member,
+  organization as org,
+  session,
+  user,
+  verification
+} from '@/infra/db/schemas/auth'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { nextCookies } from 'better-auth/next-js'
@@ -15,9 +24,27 @@ export const auth = betterAuth({
       user,
       session,
       account,
-      verification
+      verification,
+      invitation,
+      member,
+      organization: org
     }
   }),
+  databaseHooks: {
+    session: {
+      create: {
+        before: async (session) => {
+          const organization = await blogRepository.getBlog()
+          return {
+            data: {
+              ...session,
+              activeOrganizationId: organization?.id
+            }
+          }
+        }
+      }
+    }
+  },
   advanced: {
     defaultCookieAttributes: {
       secure: true,
@@ -37,9 +64,9 @@ export const auth = betterAuth({
   plugins: [
     nextCookies(),
     organization({
-      organizationCreation: {
-        disabled: true
-      },
+      // organizationCreation: {
+      //   disabled: true,
+      // },
       ac,
       roles: {
         admin,
