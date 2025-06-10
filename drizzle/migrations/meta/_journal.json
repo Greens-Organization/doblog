@@ -5,36 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1747843598241,
-      "tag": "0000_steep_praxagora",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1748386342015,
-      "tag": "0001_gigantic_hellfire_club",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1748704814647,
-      "tag": "0002_sour_zombie",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1749390364040,
-      "tag": "0003_slippery_bullseye",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1749419978068,
-      "tag": "0004_parched_king_cobra",
+      "when": 1749564051286,
+      "tag": "0000_broken_the_hood",
       "breakpoints": true
     }
   ]
