@@ -16,24 +16,19 @@ import users from './assets/users.json'
 async function seed() {
   try {
     logger.info('Start seed DB...')
-
-    try {
+    await db.transaction(async (tx) => {
       logger.info('Clear DB...')
-      await db.delete(organization)
-      await db.delete(member)
-      await db.delete(account)
-      await db.delete(post)
-      await db.delete(category)
-      await db.delete(subcategory)
+      await tx.delete(organization)
+      await tx.delete(member)
+      await tx.delete(account)
+      await tx.delete(post)
+      await tx.delete(category)
+      await tx.delete(subcategory)
       logger.info('Clear DB completed!')
-    } catch (error) {
-      logger.error('Seed - Problems in clear db')
-    }
 
-    try {
       logger.info('Seed - Create Org!')
       const name = 'Doblog'
-      const [orgData] = await db
+      const [orgData] = await tx
         .insert(organization)
         .values({
           name,
@@ -48,7 +43,7 @@ async function seed() {
 
       logger.info('Seed - Create users!')
       logger.info('Seed - Creating admin!')
-      const [newUser] = await db
+      const [newUser] = await tx
         .insert(user)
         .values({
           name: users.admin.name,
@@ -61,7 +56,7 @@ async function seed() {
         })
         .returning()
 
-      await db
+      await tx
         .insert(account)
         .values({
           accountId: crypto.randomUUID(),
@@ -73,7 +68,7 @@ async function seed() {
         })
         .returning()
 
-      await db
+      await tx
         .insert(member)
         .values({
           organizationId: orgData.id,
@@ -84,7 +79,7 @@ async function seed() {
       logger.info('Seed - Admin created!')
 
       logger.info('Seed - Creating editor!')
-      const [newEditorUser] = await db
+      const [newEditorUser] = await tx
         .insert(user)
         .values({
           name: users.editor.name,
@@ -97,7 +92,7 @@ async function seed() {
         })
         .returning()
 
-      await db
+      await tx
         .insert(account)
         .values({
           accountId: crypto.randomUUID(),
@@ -109,7 +104,7 @@ async function seed() {
         })
         .returning()
 
-      await db
+      await tx
         .insert(member)
         .values({
           organizationId: orgData.id,
@@ -118,102 +113,98 @@ async function seed() {
         })
         .returning()
       logger.info('Seed - Editor created!')
-    } catch (error) {
-      logger.error('Seed - Account exist')
-    }
 
-    // Seed categories and subcategories
-    const categoriesData = [
-      {
-        name: 'Marketing',
-        slug: 'marketing',
-        description: 'Conteúdo sobre marketing digital'
-      },
-      {
-        name: 'Comercial',
-        slug: 'comercial',
-        description: 'Estratégias e dicas de vendas'
-      },
-      {
-        name: 'Técnico',
-        slug: 'tecnico',
-        description: 'Informações técnicas sobre nossos produtos'
-      },
-      {
-        name: 'Mercado',
-        slug: 'mercado',
-        description: 'Análises e tendências de mercado'
-      }
-    ]
-
-    const categories = await db
-      .insert(category)
-      .values(categoriesData)
-      .returning()
-
-    const subcategoriesMap = {
-      Marketing: [
-        'Geração de Leads',
-        'SEO e Conteúdo',
-        'Marketing de Relacionamento',
-        'Métricas e Análise',
-        'Branding e Posicionamento'
-      ],
-      Comercial: [
-        'Estratégias de Vendas',
-        'Sucesso do Cliente',
-        'Upselling e Cross-selling',
-        'Gestão de Funil de Vendas',
-        'Casos de Sucesso'
-      ],
-      Técnico: [
-        'Guias e Tutoriais',
-        'Integrações e APIs',
-        'Segurança e Conformidade',
-        'Performance e Escalabilidade',
-        'FAQs Técnicos'
-      ],
-      Mercado: [
-        'Tendências de Mercado',
-        'Inovação Tecnológica',
-        'Análise Competitiva',
-        'Regulamentações e Compliance',
-        'ROI e Impacto Financeiro'
+      // Seed categories and subcategories
+      const categoriesData = [
+        {
+          name: 'Marketing',
+          slug: 'marketing',
+          description: 'Conteúdo sobre marketing digital'
+        },
+        {
+          name: 'Comercial',
+          slug: 'comercial',
+          description: 'Estratégias e dicas de vendas'
+        },
+        {
+          name: 'Técnico',
+          slug: 'tecnico',
+          description: 'Informações técnicas sobre nossos produtos'
+        },
+        {
+          name: 'Mercado',
+          slug: 'mercado',
+          description: 'Análises e tendências de mercado'
+        }
       ]
-    }
 
-    for (const category of categories) {
-      const subcategoryList =
-        subcategoriesMap[category.name as keyof typeof subcategoriesMap] || []
-
-      await db
-        .insert(subcategory)
-        .values({
-          name: `${category.name} Default Subcategory`,
-          slug: `${category.slug}-default`,
-          categoryId: category.id,
-          isDefault: true
-        })
+      const categories = await tx
+        .insert(category)
+        .values(categoriesData)
         .returning()
 
-      for (const subcategoryName of subcategoryList) {
-        await db
+      const subcategoriesMap = {
+        Marketing: [
+          'Geração de Leads',
+          'SEO e Conteúdo',
+          'Marketing de Relacionamento',
+          'Métricas e Análise',
+          'Branding e Posicionamento'
+        ],
+        Comercial: [
+          'Estratégias de Vendas',
+          'Sucesso do Cliente',
+          'Upselling e Cross-selling',
+          'Gestão de Funil de Vendas',
+          'Casos de Sucesso'
+        ],
+        Técnico: [
+          'Guias e Tutoriais',
+          'Integrações e APIs',
+          'Segurança e Conformidade',
+          'Performance e Escalabilidade',
+          'FAQs Técnicos'
+        ],
+        Mercado: [
+          'Tendências de Mercado',
+          'Inovação Tecnológica',
+          'Análise Competitiva',
+          'Regulamentações e Compliance',
+          'ROI e Impacto Financeiro'
+        ]
+      }
+
+      for (const category of categories) {
+        const subcategoryList =
+          subcategoriesMap[category.name as keyof typeof subcategoriesMap] || []
+
+        await tx
           .insert(subcategory)
           .values({
-            name: subcategoryName,
-            slug: slug(subcategoryName),
-            description: `Article about ${subcategoryName}`,
-            categoryId: category.id
+            name: `${category.name} Default Subcategory`,
+            slug: `${category.slug}-default`,
+            categoryId: category.id,
+            isDefault: true
           })
           .returning()
-      }
-    }
 
-    try {
+        for (const subcategoryName of subcategoryList) {
+          await tx
+            .insert(subcategory)
+            .values({
+              name: subcategoryName,
+              slug: slug(subcategoryName),
+              description: `Article about ${subcategoryName}`,
+              categoryId: category.id
+            })
+            .returning()
+        }
+      }
+
       logger.info('Seed - Started post!')
 
       for (const postItem of postsData) {
-        const subcat = await db.query.subcategory.findFirst({
+        const subcat = await tx.query.subcategory.findFirst({
           where: eq(subcategory.slug, postItem.subcategorySlug)
         })
 
@@ -224,7 +215,7 @@ async function seed() {
           continue
         }
 
-        const author = await db.query.user.findFirst({
+        const author = await tx.query.user.findFirst({
           where: and(
             eq(user.role, postItem.authorRole as 'admin' | 'editor' | 'user')
           )
@@ -235,7 +226,7 @@ async function seed() {
           continue
         }
 
-        await db.insert(post).values({
+        await tx.insert(post).values({
           title: postItem.title,
           slug: postItem.slug,
           excerpt: postItem.excerpt,
@@ -249,13 +240,10 @@ async function seed() {
           publishedAt: new Date()
         })
       }
-    } catch (error) {
-      logger.info('Seed problem in post creation!')
-    }
 
-    logger.info('Seed concluded with success!')
+      logger.info('Seed concluded with success!')
+    })
   } catch (error) {
-    console.error('Error on start seed:', error)
     logger.error('Error on start seed:', error)
     process.exit(1)
   } finally {
