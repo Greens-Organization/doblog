@@ -9,6 +9,7 @@ import {
 import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { account, member, user } from '@/infra/db/schemas/auth'
+import { userToCategory } from '@/infra/db/schemas/auth/user-to-category'
 import { category } from '@/infra/db/schemas/blog'
 import { auth } from '@/infra/lib/better-auth/auth'
 import type { zod } from '@/infra/lib/zod'
@@ -91,6 +92,14 @@ export async function createUser(
         userId: newUser.id,
         role: parsed.data.role
       })
+
+      // Associate user with categories
+      const userCategories = categories.map((category) => ({
+        userId: newUser.id,
+        categoryId: category.id
+      }))
+
+      await tx.insert(userToCategory).values(userCategories)
 
       return newUser
     })
