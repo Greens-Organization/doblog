@@ -17,7 +17,7 @@ const searchParamsSchema = zod.object({
 })
 
 interface ResponseDTO {
-  categories: ICategoryDTO[]
+  data: ICategoryDTO[]
   pagination: {
     total: number
     page: number
@@ -142,7 +142,7 @@ export async function listCategories(
         has_next: hasNext,
         has_previous: hasPrevious
       },
-      categories
+      data: categories
     })
   } catch (error) {
     return left(serviceHandleError(error, 'listCategories'))
