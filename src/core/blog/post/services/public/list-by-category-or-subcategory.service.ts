@@ -14,8 +14,8 @@ const searchParamsSchema = zod
   .object({
     category_slug: zod.string().optional(),
     subcategory_slug: zod.string().optional(),
-    page: zod.coerce.number().optional().default(1),
-    per_page: zod.coerce.number().optional().default(25)
+    page: zod.coerce.number().min(1).optional().default(1),
+    per_page: zod.coerce.number().min(1).optional().default(25)
   })
   .refine(
     (data: { category_slug?: string; subcategory_slug?: string }) =>

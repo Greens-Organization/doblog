@@ -13,8 +13,8 @@ const searchParamsSchema = zod.object({
   slug: zod.string().optional(),
   name: zod.string().optional(),
   category_id: zod.uuid().optional(),
-  page: zod.coerce.number().optional().default(1),
-  per_page: zod.coerce.number().optional().default(25)
+  page: zod.coerce.number().min(1).optional().default(1),
+  per_page: zod.coerce.number().min(1).optional().default(25)
 })
 
 interface ResponseDTO {
