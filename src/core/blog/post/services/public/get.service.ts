@@ -13,7 +13,7 @@ const pathParamSchema = zod.object({
   slug: zod.string().min(1, 'Slug is required')
 })
 
-export async function getPostBySlug(
+export async function getPostBySlugPublic(
   request: Request
 ): Promise<AppEither<IGetPostDTO>> {
   try {

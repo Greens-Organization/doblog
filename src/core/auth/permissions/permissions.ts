@@ -2,10 +2,18 @@ import { createAccessControl } from 'better-auth/plugins/access'
 
 const statement = {
   blog: ['read', 'update', 'delete'],
-  post: ['read', 'create', 'update', 'archive', 'publish', 'moveToDraft'],
-  category: ['read', 'create', 'update', 'delete'],
-  subcategory: ['read', 'create', 'update', 'delete'],
-  user: ['read', 'create', 'update', 'delete']
+  post: [
+    'read',
+    'list',
+    'create',
+    'update',
+    'archive',
+    'publish',
+    'moveToDraft'
+  ],
+  category: ['read', 'list', 'create', 'update', 'delete'],
+  subcategory: ['read', 'list', 'create', 'update', 'delete'],
+  user: ['read', 'list', 'create', 'update', 'delete']
 } as const
 
 const ac = createAccessControl(statement)

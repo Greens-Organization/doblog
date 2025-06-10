@@ -12,7 +12,7 @@ const searchParamsSchema = zod.object({
   name: zod.string().optional()
 })
 
-export async function listCategories(
+export async function listCategoriesPublic(
   request: Request
 ): Promise<AppEither<Omit<ICategoryDTO, 'id'>[]>> {
   try {

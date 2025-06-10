@@ -1,1 +1,1 @@
-export * from './better-auth-error';
+export * from './better-auth-error'

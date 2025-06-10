@@ -3,9 +3,9 @@ import { left, right } from '@/core/error/either'
 import { NotFoundError } from '@/core/error/errors'
 import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
-import type { IBlogDTO } from '../dto'
+import { IBlogDTO } from '../../dto'
 
-export async function getBlog(
+export async function getBlogPublic(
   request: Request
 ): Promise<AppEither<Omit<IBlogDTO, 'id'>>> {
   try {

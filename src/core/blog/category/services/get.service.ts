@@ -1,24 +1,44 @@
 import type { ICategoryDTO } from '@/core/blog/category/dto'
 import type { AppEither } from '@/core/error/app-either.protocols'
 import { left, right } from '@/core/error/either'
-import { NotFoundError, ValidationError } from '@/core/error/errors'
+import {
+  NotFoundError,
+  UnauthorizedError,
+  ValidationError
+} from '@/core/error/errors'
 import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { category } from '@/infra/db/schemas/blog'
 import { extractAndValidatePathParams } from '@/infra/helpers/params'
+import { auth } from '@/infra/lib/better-auth/auth'
 import { zod } from '@/infra/lib/zod'
 import { eq } from 'drizzle-orm'
 
 const pathParamSchema = zod.object({
-  slug: zod.string().min(1, 'Slug must be at least 1 character')
+  id: zod.uuid('Invalid UUID format')
 })
 
-export async function getCategoryPublic(
+export async function getCategory(
   request: Request
-): Promise<AppEither<Omit<ICategoryDTO, 'id'>>> {
+): Promise<AppEither<ICategoryDTO>> {
   try {
+    const canAccess = await auth.api.hasPermission({
+      headers: request.headers,
+      body: {
+        permissions: {
+          category: ['read']
+        }
+      }
+    })
+
+    if (!canAccess.success) {
+      return left(
+        new UnauthorizedError('You do not have permission to do this')
+      )
+    }
+
     const parsedParam = extractAndValidatePathParams(request, pathParamSchema, [
-      'slug'
+      'id'
     ])
     if (!parsedParam.success) {
       return left(
@@ -29,16 +49,14 @@ export async function getCategoryPublic(
         )
       )
     }
-    const { slug } = parsedParam.data
+    const { id } = parsedParam.data
 
     const result = await db.query.category.findFirst({
-      where: eq(category.slug, slug),
-      columns: {
-        id: false
-      },
+      where: eq(category.id, id),
       with: {
         subcategory: {
           columns: {
+            id: true,
             name: true,
             slug: true,
             description: true

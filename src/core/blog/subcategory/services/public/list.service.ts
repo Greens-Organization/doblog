@@ -14,7 +14,7 @@ const searchParamsSchema = zod.object({
   categorySlug: zod.string().optional()
 })
 
-export async function listSubcategories(
+export async function listSubcategoriesPublic(
   request: Request
 ): Promise<AppEither<Omit<ISubcategoryDTO, 'id'>[]>> {
   try {

@@ -38,7 +38,7 @@ interface ResponseDTO {
   }
 }
 
-export async function listPostsByCategoryOrSubcategory(
+export async function listPostsByCategoryOrSubcategoryPublic(
   request: Request
 ): Promise<AppEither<ResponseDTO>> {
   try {

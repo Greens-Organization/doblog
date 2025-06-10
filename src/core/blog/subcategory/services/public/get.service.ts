@@ -13,7 +13,7 @@ const pathParamSchema = zod.object({
   slug: zod.string().min(1, 'Slug must be at least 1 character')
 })
 
-export async function getSubcategory(
+export async function getSubcategoryPublic(
   request: Request
 ): Promise<AppEither<Omit<ISubcategoryDTO, 'id'>>> {
   try {
