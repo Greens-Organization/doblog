@@ -206,9 +206,6 @@ export async function listPostsByCategoryOrSubcategoryPublic(
     const { id: subcategoryId, ...publicSubcategoryData } = subcategoryData
 
     return right({
-      category: publicCategoryData,
-      subcategory: publicSubcategoryData,
-      posts,
       pagination: {
         total,
         page,
@@ -216,7 +213,10 @@ export async function listPostsByCategoryOrSubcategoryPublic(
         total_pages: totalPages,
         has_next: hasNext,
         has_previous: hasPrevious
-      }
+      },
+      category: publicCategoryData,
+      subcategory: publicSubcategoryData,
+      posts
     })
   } catch (error) {
     return left(serviceHandleError(error, 'listPostsByCategoryOrSubcategory'))
