@@ -4,11 +4,9 @@ import { user } from '../auth/user'
 import { createdAt, idPrimaryKey, updatedAt } from '../helpers'
 import { subcategory } from './subcategory'
 
-export const postStatusEnum = pgEnum('post_status', [
-  'draft',
-  'published',
-  'archived'
-])
+export const PostStatus = ['draft', 'published', 'archived'] as const
+
+export const postStatusEnum = pgEnum('post_status', PostStatus)
 
 export const post = pgTable('post', {
   id: idPrimaryKey,

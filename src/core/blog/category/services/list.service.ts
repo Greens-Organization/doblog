@@ -4,10 +4,9 @@ import { left, right } from '@/core/error/either'
 import { UnauthorizedError } from '@/core/error/errors'
 import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
-import { category } from '@/infra/db/schemas/blog'
 import { auth } from '@/infra/lib/better-auth/auth'
 import { zod } from '@/infra/lib/zod'
-import { and, count, eq } from 'drizzle-orm'
+import { sql } from 'drizzle-orm'
 
 const searchParamsSchema = zod.object({
   id: zod.uuid().optional(),
@@ -61,64 +60,80 @@ export async function listCategories(
     const perPage = params.per_page ?? 25
     const offset = (page - 1) * perPage
 
-    const filters = []
+    // Build WHERE conditions dynamically
+    const conditions = []
 
     if (params.id) {
-      filters.push(eq(category.id, params.id))
+      conditions.push(`c.id = '${params.id}'`)
     }
 
     if (params.slug) {
-      filters.push(eq(category.slug, params.slug))
+      conditions.push(`c.slug ILIKE '%${params.slug}%'`)
     }
 
     if (params.name) {
-      filters.push(eq(category.name, params.name))
+      conditions.push(`c.name ILIKE '%${params.name}%'`)
     }
 
-    const whereClause = filters.length > 0 ? and(...filters) : undefined
+    const whereClause =
+      conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
 
-    const totalFilters = []
-    if (params.id) {
-      totalFilters.push(eq(category.id, params.id))
-    }
-    if (params.slug) {
-      totalFilters.push(eq(category.slug, params.slug))
-    }
-    if (params.name) {
-      totalFilters.push(eq(category.name, params.name))
-    }
-    const totalWhereClause =
-      totalFilters.length > 0 ? and(...totalFilters) : undefined
+    // Count total records
+    const countQuery = sql`
+      SELECT COUNT(*)::integer as total
+      FROM category c
+      ${sql.raw(whereClause)}
+    `
 
-    const totalQuery = await db
-      .select({ count: count() })
-      .from(category)
-      .where(totalWhereClause)
+    const totalResult = await db.execute(countQuery)
+    const total = totalResult.rows[0].total as number
 
-    const total = totalQuery[0].count
     const totalPages = Math.ceil(total / perPage)
     const hasNext = page < totalPages
     const hasPrevious = page > 1
 
-    const result = await db.query.category.findMany({
-      where: whereClause,
-      with: {
-        subcategory: {
-          columns: {
-            id: true,
-            name: true,
-            slug: true,
-            description: true
-          }
-        }
-      },
-      limit: perPage,
-      offset: offset
-    })
+    // Main query with pagination
+    const query = sql`
+      SELECT 
+        c.id,
+        c.name,
+        c.slug,
+        c.description,
+        c.created_at as "createdAt",
+        c.updated_at as "updatedAt",
+        COALESCE(
+          COUNT(
+            CASE 
+              WHEN p.status = 'published'
+              THEN 1 
+            END
+          ), 0
+        )::integer as "totalPost",
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', s.id,
+              'name', s.name,
+              'slug', s.slug,
+              'description', s.description
+            )
+          ) FILTER (WHERE s.id IS NOT NULL), 
+          '[]'::json
+        ) as subcategory
+      FROM category c
+      LEFT JOIN subcategory s ON c.id = s.category_id
+      LEFT JOIN post p ON s.id = p.subcategory_id
+      ${sql.raw(whereClause)}
+      GROUP BY c.id, c.name, c.slug, c.description, c.created_at, c.updated_at
+      ORDER BY c.created_at DESC
+      LIMIT ${perPage}
+      OFFSET ${offset}
+    `
 
-    //TODO: add total quantity of items in each category
+    const result = await db.execute(query)
+    const categories = result.rows as unknown as ICategoryDTO[]
+
     return right({
-      categories: result,
       pagination: {
         total,
         page,
@@ -126,7 +141,8 @@ export async function listCategories(
         total_pages: totalPages,
         has_next: hasNext,
         has_previous: hasPrevious
-      }
+      },
+      categories
     })
   } catch (error) {
     return left(serviceHandleError(error, 'listCategories'))

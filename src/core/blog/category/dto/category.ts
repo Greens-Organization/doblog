@@ -1,6 +1,10 @@
 import type { DCategory } from '@/infra/db/schemas/blog'
+import { ISubcategoryDTO } from '../../subcategory/dto'
 
-export interface ICategoryDTO extends DCategory {}
+export interface ICategoryDTO extends DCategory {
+  totalPost?: number
+  subCategories?: ISubcategoryDTO[]
+}
 
 export interface IPublicCategoryDTO extends Omit<ICategoryDTO, 'id'> {}
 
