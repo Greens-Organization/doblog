@@ -1,5 +1,5 @@
 import type { DCategory } from '@/infra/db/schemas/blog'
-import { ISubcategoryDTO } from '../../subcategory/dto'
+import type { ISubcategoryDTO } from '../../subcategory/dto'
 
 export interface ICategoryDTO extends DCategory {
   totalPost?: number
