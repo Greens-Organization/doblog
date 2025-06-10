@@ -27,7 +27,7 @@ const searchParamsSchema = zod
 interface ResponseDTO {
   category: IPublicCategoryDTO
   subcategory: IPublicSubcategoryDTO
-  posts: IGetPostDTO[]
+  data: IGetPostDTO[]
   pagination: {
     total: number
     page: number
@@ -216,7 +216,7 @@ export async function listPostsByCategoryOrSubcategoryPublic(
       },
       category: publicCategoryData,
       subcategory: publicSubcategoryData,
-      posts
+      data: posts
     })
   } catch (error) {
     return left(serviceHandleError(error, 'listPostsByCategoryOrSubcategory'))
