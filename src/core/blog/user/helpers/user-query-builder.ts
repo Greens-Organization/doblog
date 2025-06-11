@@ -1,36 +1,29 @@
+import { sanitizeValue } from '@/infra/helpers/sanitize'
 import { sql } from 'drizzle-orm'
 
 export class UserQueryBuilder {
   private conditions: string[] = []
-  private params: Record<string, unknown> = {}
-  private paramCounter = 0
 
   addCategoryFilter(categoryId: string): this {
-    const paramName = `category_${++this.paramCounter}`
-    this.conditions.push(`uc.category_id = $${paramName}`)
-    this.params[paramName] = categoryId
+    this.conditions.push(`uc.category_id = ${sanitizeValue(categoryId)}`)
     return this
   }
 
   addNameFilter(name: string): this {
-    const paramName = `name_${++this.paramCounter}`
-    this.conditions.push(`u.name ILIKE $${paramName}`)
-    this.params[paramName] = `%${name}%`
+    this.conditions.push(`u.name ILIKE '%${sanitizeValue(name)}%'`)
     return this
   }
 
   addEmailFilter(email: string): this {
-    const paramName = `email_${++this.paramCounter}`
-    this.conditions.push(`u.email ILIKE $${paramName}`)
-    this.params[paramName] = `%${email}%`
+    this.conditions.push(`u.email ILIKE '%${sanitizeValue(email)}%'`)
     return this
   }
 
-  build(): { whereClause: string; params: Record<string, unknown> } {
+  build(): string {
     const whereClause =
       this.conditions.length > 0 ? `WHERE ${this.conditions.join(' AND ')}` : ''
 
-    return { whereClause, params: this.params }
+    return whereClause
   }
 }
 

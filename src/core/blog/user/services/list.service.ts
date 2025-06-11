@@ -7,9 +7,9 @@ import { db } from '@/infra/db'
 import { auth } from '@/infra/lib/better-auth/auth'
 import { zod } from '@/infra/lib/zod'
 import {
+  UserQueryBuilder,
   buildCountQuery,
-  buildUserListQuery,
-  UserQueryBuilder
+  buildUserListQuery
 } from '../helpers'
 
 // Schema for validating search parameters
@@ -112,7 +112,7 @@ export async function listUser(
       queryBuilder.addEmailFilter(params.email)
     }
 
-    const { whereClause } = queryBuilder.build()
+    const whereClause = queryBuilder.build()
 
     // Total record count
     const countQuery = buildCountQuery(whereClause)

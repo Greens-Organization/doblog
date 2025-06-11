@@ -4,6 +4,7 @@ import { left, right } from '@/core/error/either'
 import { UnauthorizedError } from '@/core/error/errors'
 import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
+import { sanitizeValue } from '@/infra/helpers/sanitize'
 import { auth } from '@/infra/lib/better-auth/auth'
 import { zod } from '@/infra/lib/zod'
 import { sql } from 'drizzle-orm'
@@ -64,21 +65,22 @@ export async function listSubcategories(
 
     // Build WHERE conditions dynamically
     const conditions = []
+    const queryParams: unknown[] = []
 
     if (params.id) {
-      conditions.push(`s.id = '${params.id}'`)
+      conditions.push(`s.id = ${sanitizeValue(params.id)}`)
     }
 
     if (params.slug) {
-      conditions.push(`s.slug ILIKE '%${params.slug}%'`)
+      conditions.push(`s.slug ILIKE '%${sanitizeValue(params.slug)}%'`)
     }
 
     if (params.name) {
-      conditions.push(`s.name ILIKE '%${params.name}%'`)
+      conditions.push(`s.name ILIKE '%${sanitizeValue(params.name)}%'`)
     }
 
     if (params.category_id) {
-      conditions.push(`s.category_id = '${params.category_id}'`)
+      conditions.push(`s.category_id = $${queryParams.push()}`)
     }
 
     const whereClause =

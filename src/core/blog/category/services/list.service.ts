@@ -4,6 +4,7 @@ import { left, right } from '@/core/error/either'
 import { UnauthorizedError } from '@/core/error/errors'
 import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
+import { sanitizeValue } from '@/infra/helpers/sanitize'
 import { auth } from '@/infra/lib/better-auth/auth'
 import { zod } from '@/infra/lib/zod'
 import { sql } from 'drizzle-orm'
@@ -64,15 +65,15 @@ export async function listCategories(
     const conditions = []
 
     if (params.id) {
-      conditions.push(`c.id = '${params.id}'`)
+      conditions.push(`c.id = '${sanitizeValue(params.id)}'`)
     }
 
     if (params.slug) {
-      conditions.push(`c.slug ILIKE '%${params.slug}%'`)
+      conditions.push(`c.slug ILIKE '%${sanitizeValue(params.slug)}%'`)
     }
 
     if (params.name) {
-      conditions.push(`c.name ILIKE '%${params.name}%'`)
+      conditions.push(`c.name ILIKE '%${sanitizeValue(params.name)}%'`)
     }
 
     const whereClause =
