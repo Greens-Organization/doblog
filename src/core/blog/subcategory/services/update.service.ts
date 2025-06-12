@@ -13,7 +13,6 @@ import { extractAndValidatePathParams } from '@/infra/helpers/params'
 import { auth } from '@/infra/lib/better-auth/auth'
 import { zod } from '@/infra/lib/zod'
 import { updateCategorySchema } from '@/infra/validations/schemas/category'
-import { logger } from 'better-auth'
 import { and, eq, ne } from 'drizzle-orm'
 import type { ISubcategoryDTO } from '../dto'
 
@@ -112,7 +111,6 @@ export async function updateSubcategory(
       .set(updatedSubcategoryData)
       .where(eq(subcategory.id, id))
       .returning()
-    logger.debug('Updated subcategory data:', updatedCategory)
 
     return right({ ...updatedCategory, category: existingSubcategory.category })
   } catch (error) {

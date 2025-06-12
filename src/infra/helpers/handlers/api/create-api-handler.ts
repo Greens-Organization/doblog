@@ -1,8 +1,8 @@
 import type { AppEither } from '@/core/error/app-either.protocols'
 import { isLeft, isRight } from '@/core/error/either'
 import type { BaseError } from '@/core/error/errors'
-import { logger } from 'better-auth'
 import { normalizeHeaders } from '../../normalize-headers'
+import { serviceHandleError } from '@/core/error/handlers'
 
 export function createApiHandler<R>(
   handler: (request: Request) => Promise<AppEither<R>>
@@ -58,7 +58,7 @@ export function createApiHandler<R>(
         status: 500
       })
     } catch (err) {
-      logger.error('Unhandled API Error:', err)
+      serviceHandleError(err)
       return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
         status: 500
       })
