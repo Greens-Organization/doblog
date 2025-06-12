@@ -2,8 +2,7 @@ import { logger } from '@/infra/lib/logger/logger-server'
 import { APIError } from 'better-auth/api'
 import { ZodError } from 'zod/v4'
 import { BetterAuthError } from '../custom'
-import { DatabaseError, ValidationError } from '../errors'
-import { UnknownError } from '../errors/unknown-error'
+import { DatabaseError, UnknownError, ValidationError } from '../errors'
 
 function isDatabaseError(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false
@@ -35,9 +34,7 @@ export function serviceHandleError(error: unknown, origin = 'Unknown origin') {
 
   if (error instanceof DatabaseError || isDatabaseError(error)) {
     logger.error(`DatabaseError (${origin}): `, error)
-    return error instanceof DatabaseError
-      ? error
-      : new DatabaseError(error instanceof Error ? error.message : undefined)
+    return new DatabaseError()
   }
 
   logger.error(`Unhandled error in service (${origin}):`, error)

@@ -3,10 +3,17 @@ import { BaseError } from '../errors'
 
 export class BetterAuthError extends BaseError {
   constructor(error: APIError) {
-    super(error.body?.message ?? 'Unknown error', {
+    super(error.body?.message ?? 'Unauthorized error', {
       statusCode: error.statusCode ?? 500,
-      name: 'BetterAuthError',
-      code: error.body?.code ?? 'UNKNOWN_CODE'
+      name: 'AuthError',
+      code:
+        (typeof error.status === 'string'
+          ? error.status
+          : error.status !== undefined
+            ? String(error.status)
+            : undefined) ||
+        error.body?.code ||
+        'UNKNOWN_CODE'
     })
   }
 }
