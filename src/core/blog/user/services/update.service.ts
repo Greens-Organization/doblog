@@ -1,6 +1,7 @@
 import type { AppEither } from '@/core/error/app-either.protocols'
 import { left, right } from '@/core/error/either'
 import {
+  ConflictError,
   NotFoundError,
   UnauthorizedError,
   ValidationError
@@ -77,17 +78,25 @@ export async function updateUser(
       )
     }
 
+    const existingEmail = await db.query.user.findFirst({
+      where: eq(user.email, parsed.data.email)
+    })
+    if (existingEmail && existingEmail.id !== existingUser.id) {
+      return left(new ConflictError('Another user is using this email'))
+    }
+
     const result = await db.transaction(async (tx) => {
-      const [newUser] = await tx
+      const [updatedUser] = await tx
         .update(user)
         .set({
           name: parsed.data.name,
           email: parsed.data.email,
           role: parsed.data.role
         })
+        .where(eq(user.id, id))
         .returning()
 
-      return newUser
+      return updatedUser
     })
 
     return right({
@@ -97,9 +106,9 @@ export async function updateUser(
         image: result.image,
         role: result.role
       },
-      statusCode: 201
+      statusCode: 200
     })
   } catch (error) {
-    return left(serviceHandleError(error, 'createUser'))
+    return left(serviceHandleError(error, 'updateUser'))
   }
 }
