@@ -8,7 +8,7 @@ export const userToCategory = pgTable('user_to_category', {
   id: idPrimaryKey,
   userId: text('user_id')
     .notNull()
-    .references(() => user.id),
+    .references(() => user.id, { onDelete: 'cascade' }),
   categoryId: text('category_id')
     .notNull()
     .references(() => category.id),
