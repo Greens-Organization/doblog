@@ -21,7 +21,7 @@ export const post = pgTable('post', {
     .references(() => subcategory.id),
   authorId: text('author_id')
     .notNull()
-    .references(() => user.id, { onDelete: 'cascade' }),
+    .references(() => user.id),
   createdAt,
   updatedAt,
   publishedAt: timestamp('published_at', { withTimezone: true, mode: 'date' })

@@ -13,7 +13,8 @@ const statement = {
   ],
   category: ['read', 'list', 'create', 'update', 'delete'],
   subcategory: ['read', 'list', 'create', 'update', 'delete'],
-  user: ['read', 'list', 'create', 'update', 'delete']
+  user: ['read', 'list', 'create', 'update', 'delete', 'changeCategories'],
+  profile: ['read', 'update']
 } as const
 
 const ac = createAccessControl(statement)

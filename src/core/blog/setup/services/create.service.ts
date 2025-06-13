@@ -2,8 +2,10 @@ import type { AppEither } from '@/core/error/app-either.protocols'
 import { left, right } from '@/core/error/either'
 import { ConflictError, ValidationError } from '@/core/error/errors'
 import { serviceHandleError } from '@/core/error/handlers'
+import { makePasswordHasher } from '@/infra/cryptography/password'
 import { db } from '@/infra/db'
-import { organization } from '@/infra/db/schemas/auth'
+import { account, member, organization, user } from '@/infra/db/schemas/auth'
+import { generateUUID } from '@/infra/helpers/generate'
 import { slug } from '@/infra/helpers/string'
 import type { zod } from '@/infra/lib/zod'
 import { createBlogSchema } from '@/infra/validations/schemas/blog'
@@ -29,7 +31,7 @@ export async function createBlog(
     }
 
     const [data] = await db.transaction(async (tx) => {
-      const [inserted] = await tx
+      const [blogData] = await tx
         .insert(organization)
         .values({
           name: parsed.data.name,
@@ -38,7 +40,30 @@ export async function createBlog(
           description: parsed.data.description
         })
         .returning()
-      return [inserted]
+
+      const [createdAnonymousUser] = await tx
+        .insert(user)
+        .values({
+          name: 'Anonymous',
+          email: 'anonymous',
+          emailVerified: true,
+          role: 'editor'
+        })
+        .returning()
+
+      await tx.insert(account).values({
+        accountId: generateUUID(),
+        userId: createdAnonymousUser!.id,
+        providerId: 'credential',
+        password: await makePasswordHasher().hash(generateUUID())
+      })
+
+      await tx.insert(member).values({
+        organizationId: blogData.id,
+        userId: createdAnonymousUser.id,
+        role: 'editor'
+      })
+      return [blogData]
     })
 
     return right({ body: data, statusCode: 201 })

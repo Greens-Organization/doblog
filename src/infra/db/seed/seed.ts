@@ -1,4 +1,5 @@
 import { generateRandomURLAvatar } from '@/infra/helpers/dicebear'
+import { generateUUID } from '@/infra/helpers/generate'
 import { and, eq } from 'drizzle-orm'
 import { db } from '..'
 import { makePasswordHasher } from '../../cryptography/password'
@@ -42,6 +43,30 @@ async function seed() {
       logger.info('Seed - Org created!')
 
       logger.info('Seed - Create users!')
+      logger.info('Seed - Creating anonymous!')
+      const [createdAnonymousUser] = await tx
+        .insert(user)
+        .values({
+          name: 'Anonymous',
+          email: 'anonymous',
+          emailVerified: true,
+          role: 'editor'
+        })
+        .returning()
+
+      await tx.insert(account).values({
+        accountId: generateUUID(),
+        userId: createdAnonymousUser!.id,
+        providerId: 'credential',
+        password: await makePasswordHasher().hash(generateUUID())
+      })
+
+      await tx.insert(member).values({
+        organizationId: orgData.id,
+        userId: createdAnonymousUser.id,
+        role: 'editor'
+      })
+
       logger.info('Seed - Creating admin!')
       const [newUser] = await tx
         .insert(user)
