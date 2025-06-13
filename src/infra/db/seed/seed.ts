@@ -5,10 +5,15 @@ import { db } from '..'
 import { makePasswordHasher } from '../../cryptography/password'
 import { slug } from '../../helpers/string'
 import { logger } from '../../lib/logger/logger-server'
-import { member, organization } from '../schemas/auth'
+import {
+  member,
+  organization,
+  userToCategory,
+  verification
+} from '../schemas/auth'
 import { account } from '../schemas/auth/account'
 import { user } from '../schemas/auth/user'
-import { post } from '../schemas/blog'
+import { post, tag } from '../schemas/blog'
 import { category } from '../schemas/blog/category'
 import { subcategory } from '../schemas/blog/subcategory'
 import postsData from './assets/posts.json'
@@ -18,14 +23,18 @@ async function seed() {
   try {
     logger.info('Start seed DB...')
     await db.transaction(async (tx) => {
-      logger.info('Clear DB...')
+      logger.info('Cleaning DB...')
       await tx.delete(organization)
+      await tx.delete(user)
       await tx.delete(member)
       await tx.delete(account)
+      await tx.delete(tag)
+      await tx.delete(verification)
       await tx.delete(post)
+      await tx.delete(userToCategory)
       await tx.delete(category)
       await tx.delete(subcategory)
-      logger.info('Clear DB completed!')
+      logger.info('DB cleaned!')
 
       logger.info('Seed - Create Org!')
       const name = 'Doblog'
