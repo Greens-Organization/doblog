@@ -4,6 +4,7 @@ import * as member from './schemas/auth/member'
 import * as organization from './schemas/auth/organization'
 import * as session from './schemas/auth/session'
 import * as user from './schemas/auth/user'
+import * as userToCategory from './schemas/auth/user-to-category'
 import * as verification from './schemas/auth/verification'
 import * as category from './schemas/blog/category'
 import * as post from './schemas/blog/post'
@@ -19,6 +20,7 @@ export const schema = {
   ...invitation,
   ...organization,
   ...member,
+  ...userToCategory,
 
   // blog
   ...post,
