@@ -3,7 +3,7 @@ import {
   generateRandomURLAvatar
 } from '@/infra/helpers/dicebear'
 import { generateUUID } from '@/infra/helpers/generate'
-import { and, eq } from 'drizzle-orm'
+import { and, eq, not } from 'drizzle-orm'
 import { db } from '..'
 import { makePasswordHasher } from '../../cryptography/password'
 import { slug } from '../../helpers/string'
@@ -28,15 +28,15 @@ async function seed() {
     await db.transaction(async (tx) => {
       logger.info('Cleaning DB...')
       await tx.delete(organization)
+      await tx.delete(userToCategory)
+      await tx.delete(post)
+      await tx.delete(tag)
+      await tx.delete(category)
+      await tx.delete(subcategory)
       await tx.delete(user)
       await tx.delete(member)
       await tx.delete(account)
-      await tx.delete(tag)
       await tx.delete(verification)
-      await tx.delete(post)
-      await tx.delete(userToCategory)
-      await tx.delete(category)
-      await tx.delete(subcategory)
       logger.info('DB cleaned!')
 
       logger.info('Seed - Create Org!')
@@ -257,13 +257,28 @@ async function seed() {
 
         const author = await tx.query.user.findFirst({
           where: and(
-            eq(user.role, postItem.authorRole as 'admin' | 'editor' | 'user')
+            eq(user.role, postItem.authorRole as 'admin' | 'editor' | 'user'),
+            not(eq(user.email, 'anonymous'))
           )
         })
 
         if (!author) {
           logger.warn(`Autor ${postItem.authorRole} não encontrado!`)
           continue
+        }
+
+        const existUserCategory = await tx.query.userToCategory.findFirst({
+          where: and(
+            eq(userToCategory.userId, author.id),
+            eq(userToCategory.categoryId, subcat.categoryId)
+          )
+        })
+
+        if (!existUserCategory) {
+          await tx.insert(userToCategory).values({
+            userId: author.id,
+            categoryId: subcat.categoryId
+          })
         }
 
         await tx.insert(post).values({
