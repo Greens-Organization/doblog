@@ -9,7 +9,8 @@ const statement = {
     'update',
     'archive',
     'publish',
-    'moveToDraft'
+    'moveToDraft',
+    'changeAuthor'
   ],
   category: ['read', 'list', 'create', 'update', 'delete'],
   subcategory: ['read', 'list', 'create', 'update', 'delete'],
