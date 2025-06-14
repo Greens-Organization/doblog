@@ -4,6 +4,7 @@ import type { ICategoryDTO } from '../../category/dto'
 export interface ISubcategoryDTO
   extends Omit<DSubcategory, 'categoryId' | 'isDefault'> {
   category: Omit<ICategoryDTO, 'id' | 'createdAt' | 'updatedAt'>
+  totalPost?: number
 }
 
 export interface IPublicSubcategoryDTO

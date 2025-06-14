@@ -1,17 +1,16 @@
 import type { ICategoryDTO } from '@/core/blog/category/dto'
 import type { AppEither } from '@/core/error/app-either.protocols'
-import { isLeft, left, right } from '@/core/error/either'
+import { left, right } from '@/core/error/either'
 import {
   ConflictError,
-  DatabaseError,
+  UnauthorizedError,
   ValidationError
 } from '@/core/error/errors'
+import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { category, subcategory } from '@/infra/db/schemas/blog'
-import { ensureAuthenticated } from '@/infra/helpers/auth'
-import { ensureIsAdmin } from '@/infra/helpers/auth/ensure-is-admin'
-import { logger } from '@/infra/lib/logger/logger-server'
-import { zod } from '@/infra/lib/zod'
+import { auth } from '@/infra/lib/better-auth/auth'
+import type { zod } from '@/infra/lib/zod'
 import { createCategorySchema } from '@/infra/validations/schemas/category'
 import { eq } from 'drizzle-orm'
 
@@ -19,11 +18,20 @@ export async function createCategory(
   request: Request
 ): Promise<AppEither<ICategoryDTO>> {
   try {
-    const sessionResult = await ensureAuthenticated(request)
-    if (isLeft(sessionResult)) return sessionResult
+    const canAccess = await auth.api.hasPermission({
+      headers: request.headers,
+      body: {
+        permissions: {
+          category: ['create']
+        }
+      }
+    })
 
-    const isAdmin = ensureIsAdmin(sessionResult.value)
-    if (isLeft(isAdmin)) return isAdmin
+    if (!canAccess.success) {
+      return left(
+        new UnauthorizedError('You do not have permission to do this')
+      )
+    }
 
     const bodyData = await request.json()
 
@@ -66,13 +74,6 @@ export async function createCategory(
 
     return right({ body: data, statusCode: 201 })
   } catch (error) {
-    if (error instanceof zod.ZodError) {
-      return left(
-        new ValidationError(error.issues.map((e) => e.message).join('; '))
-      )
-    }
-
-    logger.error('Unhandled error in createCategory:', error)
-    return left(new DatabaseError())
+    return left(serviceHandleError(error, 'createCategory'))
   }
 }
