@@ -1,4 +1,7 @@
-import { generateRandomURLAvatar } from '@/infra/helpers/dicebear'
+import {
+  DicebearTypes,
+  generateRandomURLAvatar
+} from '@/infra/helpers/dicebear'
 import { generateUUID } from '@/infra/helpers/generate'
 import { and, eq } from 'drizzle-orm'
 import { db } from '..'
@@ -59,7 +62,8 @@ async function seed() {
           name: 'Anonymous',
           email: 'anonymous',
           emailVerified: true,
-          role: 'editor'
+          role: 'editor',
+          image: generateRandomURLAvatar()
         })
         .returning()
 
@@ -84,7 +88,9 @@ async function seed() {
           email: users.admin.email,
           emailVerified: true,
           role: 'admin',
-          image: generateRandomURLAvatar({ type: 'notionists' }),
+          image: generateRandomURLAvatar({
+            type: DicebearTypes.notionists
+          }),
           createdAt: new Date(),
           updatedAt: new Date()
         })
@@ -120,7 +126,7 @@ async function seed() {
           email: users.editor.email,
           emailVerified: true,
           role: 'editor',
-          image: generateRandomURLAvatar({ type: 'notionists' }),
+          image: generateRandomURLAvatar({ type: DicebearTypes.notionists }),
           createdAt: new Date(),
           updatedAt: new Date()
         })

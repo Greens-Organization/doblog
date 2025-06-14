@@ -8,10 +8,11 @@ import {
 import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { user, userToCategory } from '@/infra/db/schemas/auth'
+import { post } from '@/infra/db/schemas/blog'
 import { extractAndValidatePathParams } from '@/infra/helpers/params'
 import { auth } from '@/infra/lib/better-auth/auth'
 import { zod } from '@/infra/lib/zod'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { blogRepository } from '../../repository'
 import type { IUserDTO } from '../dto'
 
@@ -66,7 +67,22 @@ export async function deleteUser(
       return left(new NotFoundError('User not found'))
     }
 
+    const anonymousUser = await db.query.user.findFirst({
+      where: and(eq(user.email, 'anonymous'))
+    })
+    if (!anonymousUser) {
+      return left(new NotFoundError('Anonymous user not found'))
+    }
+    if (id === anonymousUser.id) {
+      return left(new ValidationError('Cannot delete Anonymous user'))
+    }
+
     const result = await db.transaction(async (tx) => {
+      await tx
+        .update(post)
+        .set({ authorId: anonymousUser.id })
+        .where(eq(post.authorId, id))
+
       await tx
         .delete(userToCategory)
         .where(eq(userToCategory.userId, id))

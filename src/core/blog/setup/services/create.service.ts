@@ -5,6 +5,7 @@ import { serviceHandleError } from '@/core/error/handlers'
 import { makePasswordHasher } from '@/infra/cryptography/password'
 import { db } from '@/infra/db'
 import { account, member, organization, user } from '@/infra/db/schemas/auth'
+import { generateRandomURLAvatar } from '@/infra/helpers/dicebear'
 import { generateUUID } from '@/infra/helpers/generate'
 import { slug } from '@/infra/helpers/string'
 import type { zod } from '@/infra/lib/zod'
@@ -36,7 +37,7 @@ export async function createBlog(
         .values({
           name: parsed.data.name,
           slug: slug(parsed.data.name),
-          logo: parsed.data.logo,
+          logo: parsed.data.logo ?? generateRandomURLAvatar(),
           description: parsed.data.description
         })
         .returning()
@@ -47,7 +48,8 @@ export async function createBlog(
           name: 'Anonymous',
           email: 'anonymous',
           emailVerified: true,
-          role: 'editor'
+          role: 'editor',
+          image: generateRandomURLAvatar()
         })
         .returning()
 

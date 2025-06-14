@@ -26,6 +26,10 @@
   "eslint.enable": false,
   "npm.packageManager": "bun",
   "cSpell.words": [
+    "dicebear",
+    "Dicebear",
+    "lorelei",
+    "notionists",
     "stringbool"
   ]
 }

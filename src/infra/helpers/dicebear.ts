@@ -1,10 +1,16 @@
-interface Options {
+export enum DicebearTypes {
+  glass = 'glass',
+  loreleiNeutral = 'lorelei-neutral',
+  notionists = 'notionists'
+}
+
+export interface Options {
   customSeed?: string
-  type?: 'glass' | 'lorelei-neutral' | 'notionists'
+  type?: DicebearTypes
 }
 
 function generateRandomURLAvatar({
-  type = 'glass',
+  type = DicebearTypes.glass,
   customSeed
 }: Options = {}): string {
   const id = customSeed ?? crypto.randomUUID().slice(0, 8)

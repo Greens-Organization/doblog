@@ -13,7 +13,7 @@ import { extractAndValidatePathParams } from '@/infra/helpers/params'
 import { auth } from '@/infra/lib/better-auth/auth'
 import { zod } from '@/infra/lib/zod'
 import { updateUserSchema } from '@/infra/validations/schemas/user'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { blogRepository } from '../../repository'
 import type { IUserDTO } from '../dto'
 
@@ -60,6 +60,13 @@ export async function updateUser(
       )
     }
     const { id } = parsedParam.data
+
+    const anonymousUser = await db.query.user.findFirst({
+      where: and(eq(user.email, 'anonymous'))
+    })
+    if (anonymousUser && id === anonymousUser.id) {
+      return left(new NotFoundError('Anonymous user cannot be updated'))
+    }
 
     const existingUser = await db.query.user.findFirst({
       where: eq(user.id, id)
