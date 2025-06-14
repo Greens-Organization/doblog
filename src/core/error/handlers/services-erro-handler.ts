@@ -2,7 +2,12 @@ import { logger } from '@/infra/lib/logger/logger-server'
 import { APIError } from 'better-auth/api'
 import { ZodError } from 'zod/v4'
 import { BetterAuthError } from '../custom'
-import { DatabaseError, UnknownError, ValidationError } from '../errors'
+import {
+  CustomSyntaxError,
+  DatabaseError,
+  UnknownError,
+  ValidationError
+} from '../errors'
 
 function isDatabaseError(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false
@@ -19,6 +24,11 @@ function isDatabaseError(error: unknown): boolean {
 }
 
 export function serviceHandleError(error: unknown, origin = 'Unknown origin') {
+  if (error instanceof SyntaxError) {
+    logger.error(`SyntaxError (${origin}):`, error.message, error.stack)
+    return new CustomSyntaxError(error.message)
+  }
+
   if (error instanceof ZodError) {
     logger.error(
       `ValidationError (${origin}):`,

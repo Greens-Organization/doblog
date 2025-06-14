@@ -1,5 +1,6 @@
 export * from './base-error'
 export * from './conflict-error'
+export * from './custom-syntax-error'
 export * from './database-error'
 export * from './not-found-error'
 export * from './unauthorized-error'
