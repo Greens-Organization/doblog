@@ -8,7 +8,7 @@ import { db } from '@/infra/db'
 import { category, post, subcategory } from '@/infra/db/schemas/blog'
 import { zod } from '@/infra/lib/zod'
 import { and, count, eq } from 'drizzle-orm'
-import type { IGetPostDTO } from '../../dto'
+import type { IGetPublishedPostDTO } from '../../dto'
 
 const searchParamsSchema = zod
   .object({
@@ -27,7 +27,7 @@ const searchParamsSchema = zod
 interface ResponseDTO {
   category: IPublicCategoryDTO
   subcategory: IPublicSubcategoryDTO
-  data: IGetPostDTO[]
+  data: IGetPublishedPostDTO[]
   pagination: {
     total: number
     page: number
