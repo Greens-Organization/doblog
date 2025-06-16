@@ -82,14 +82,18 @@ export async function publishPost(
       return left(new ConflictError('Unable to publish an archived post'))
     }
 
-    const [updatedPost] = await db
-      .update(post)
-      .set({
-        status: 'published',
-        publishedAt: new Date()
-      })
-      .where(eq(post.id, id))
-      .returning()
+    const updatedPost = await db.transaction(async (tx) => {
+      const [dataReturn] = await tx
+        .update(post)
+        .set({
+          status: 'published',
+          publishedAt: new Date()
+        })
+        .where(eq(post.id, id))
+        .returning()
+
+      return dataReturn
+    })
 
     return right(updatedPost)
   } catch (error) {
