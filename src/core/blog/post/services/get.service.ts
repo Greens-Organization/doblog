@@ -45,6 +45,7 @@ export async function getPost(
     if (!session.value || !session.value.user) {
       return left(new UnauthorizedError('User not found in session'))
     }
+    const isAdmin = session.value.user.role === 'admin'
 
     const parsedParam = extractAndValidatePathParams(request, pathParamSchema, [
       'id'
@@ -106,9 +107,10 @@ export async function getPost(
       return left(new NotFoundError('Post not found or does not exist'))
     }
 
-    const canAccessPost = userCategories.find(
-      (c) => c.id === postData?.subcategory.category.id
-    )
+    const canAccessPost = isAdmin
+      ? true
+      : userCategories.find((c) => c.id === postData?.subcategory.category.id)
+
     if (!canAccessPost) {
       return left(
         new UnauthorizedError('You do not have permission to access this post')
