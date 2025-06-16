@@ -1,5 +1,5 @@
 import type { AppEither } from '@/core/error/app-either.protocols'
-import { left, right } from '@/core/error/either'
+import { isLeft, left, right } from '@/core/error/either'
 import {
   ConflictError,
   NotFoundError,
@@ -9,11 +9,13 @@ import {
 import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { category, post, subcategory } from '@/infra/db/schemas/blog'
+import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { extractAndValidatePathParams } from '@/infra/helpers/params'
 import { auth } from '@/infra/lib/better-auth/auth'
 import { zod } from '@/infra/lib/zod'
 import { createPostSchema } from '@/infra/validations/schemas/post'
 import { eq } from 'drizzle-orm'
+import { checkUserCategories } from '../../user/services'
 import type { IPostDTO } from '../dto'
 
 const pathParamSchema = zod.object({
@@ -38,7 +40,10 @@ export async function updatePost(
         new UnauthorizedError('You do not have permission to do this')
       )
     }
-    // TODO: Add a check for the user's permissions to create a post in a specific category
+    const sessionResult = await ensureAuthenticated(request)
+    if (isLeft(sessionResult)) return left(sessionResult.value)
+    const session = sessionResult.value
+    const isAdmin = session!.user.role === 'admin'
 
     const parsedParam = extractAndValidatePathParams(request, pathParamSchema, [
       'id'
@@ -75,19 +80,37 @@ export async function updatePost(
       )
     }
 
+    // Check if the user has permission to create posts
+    const checkUser = await checkUserCategories({
+      userId: session?.user.id!
+    })
+    if (isLeft(checkUser)) {
+      return left(checkUser.value)
+    }
+    const { categories: userCategories, subcategories: userSubcategories } =
+      checkUser.value
+
     // Check if the slug is already used by another post
     const categoryData = await db.query.category.findFirst({
-      where: eq(category.slug, parsed.data.categorySlug)
+      where: eq(category.slug, parsed.data.category_slug)
     })
 
     if (!categoryData) {
       return left(new ValidationError('Category not found'))
     }
 
+    if (!userCategories.some((c) => c.slug === categoryData.slug) && !isAdmin) {
+      return left(
+        new UnauthorizedError(
+          'You do not have permission to create posts in this category'
+        )
+      )
+    }
+
     // If subcategorySlug is not provided, use the default slug format
-    const subcategorySlug = parsed.data.subcategorySlug
-      ? parsed.data.subcategorySlug
-      : `${parsed.data.categorySlug}-default`
+    const subcategorySlug = parsed.data.subcategory_slug
+      ? parsed.data.subcategory_slug
+      : `${parsed.data.category_slug}-default`
 
     const subcategoryData = await db.query.subcategory.findFirst({
       where: eq(subcategory.slug, subcategorySlug)
@@ -99,6 +122,19 @@ export async function updatePost(
           subcategorySlug.includes('default')
             ? 'Subcategory default slug not found'
             : 'Subcategory not found'
+        )
+      )
+    }
+
+    if (
+      !userSubcategories.find(
+        (subcategoryData) => subcategoryData.slug === subcategorySlug
+      ) &&
+      !isAdmin
+    ) {
+      return left(
+        new UnauthorizedError(
+          'You do not have permission to create posts in this subcategory'
         )
       )
     }
@@ -119,7 +155,7 @@ export async function updatePost(
         title: parsed.data.title,
         slug: parsed.data.slug,
         excerpt: parsed.data.excerpt,
-        featuredImage: parsed.data.featuredImage,
+        featuredImage: parsed.data.featured_image,
         content: parsed.data.content,
         subcategoryId: subcategoryData.id
       })
