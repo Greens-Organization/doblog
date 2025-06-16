@@ -93,7 +93,7 @@ export async function movePostToDraft(
     }
 
     const updatedPost = await db.transaction(async (tx) => {
-      const [data] = await db
+      const [data] = await tx
         .update(post)
         .set({
           status: 'draft',
