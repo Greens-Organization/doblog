@@ -92,14 +92,17 @@ export async function movePostToDraft(
       return left(new ConflictError('Post is already a draft'))
     }
 
-    const [updatedPost] = await db
-      .update(post)
-      .set({
-        status: 'draft',
-        publishedAt: null
-      })
-      .where(eq(post.id, id))
-      .returning()
+    const updatedPost = await db.transaction(async (tx) => {
+      const [data] = await db
+        .update(post)
+        .set({
+          status: 'draft',
+          publishedAt: null
+        })
+        .where(eq(post.id, id))
+        .returning()
+      return data
+    })
 
     return right(updatedPost)
   } catch (error) {
