@@ -7,13 +7,13 @@ import {
 } from '@/core/error/errors'
 import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
-import { userToCategory } from '@/infra/db/schemas/auth'
-import { category, post } from '@/infra/db/schemas/blog'
+import { post } from '@/infra/db/schemas/blog'
 import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { extractAndValidatePathParams } from '@/infra/helpers/params'
 import { auth } from '@/infra/lib/better-auth/auth'
 import { zod } from '@/infra/lib/zod'
-import { eq, inArray } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
+import { checkUserCategories } from '../../user/services'
 import type { IGetPostDTO } from '../dto'
 
 const pathParamSchema = zod.object({
@@ -61,31 +61,13 @@ export async function getPost(
     const { id } = parsedParam.data
 
     // Check if the user has categories
-    const userCategoriesPermission = await db.query.userToCategory.findMany({
-      where: eq(userToCategory.userId, session.value.user.id)
+    const checkUser = await checkUserCategories({
+      userId: session.value.user.id
     })
-    if (!userCategoriesPermission) {
-      return left(
-        new UnauthorizedError('You do not have permission to access categories')
-      )
+    if (isLeft(checkUser)) {
+      return left(checkUser.value)
     }
-    const categoryIds = userCategoriesPermission.map(
-      (userCategory) => userCategory.categoryId
-    )
-    const userCategories = await db.query.category.findMany({
-      where: inArray(category.id, categoryIds),
-      with: {
-        subcategory: {
-          columns: {
-            id: true,
-            name: true,
-            slug: true,
-            description: true,
-            isDefault: true
-          }
-        }
-      }
-    })
+    const { categories: userCategories } = checkUser.value
 
     // Fetch posts with pagination
     const postData = await db.query.post.findFirst({

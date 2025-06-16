@@ -5,7 +5,6 @@ import { isLeft, left, right } from '@/core/error/either'
 import { NotFoundError, UnauthorizedError } from '@/core/error/errors'
 import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
-import { userToCategory } from '@/infra/db/schemas/auth'
 import {
   PostStatus,
   category,
@@ -16,6 +15,7 @@ import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { auth } from '@/infra/lib/better-auth/auth'
 import { zod } from '@/infra/lib/zod'
 import { and, count, desc, eq, inArray } from 'drizzle-orm'
+import { checkUserCategories } from '../../user/services'
 import type { IGetPostDTO } from '../dto'
 
 const searchParamsSchema = zod.object({
@@ -67,6 +67,7 @@ export async function listPosts(
     if (!session.value || !session.value.user) {
       return left(new UnauthorizedError('User not found in session'))
     }
+    const isAdmin = session.value.user.role === 'admin'
 
     const url = new URL(request.url)
     const params = searchParamsSchema.parse({
@@ -82,37 +83,22 @@ export async function listPosts(
     const offset = (page - 1) * perPage
 
     // Check if the user has categories
-    const userCategoriesPermission = await db.query.userToCategory.findMany({
-      where: eq(userToCategory.userId, session.value.user.id)
+    const checkUser = await checkUserCategories({
+      userId: session.value.user.id
     })
-    if (!userCategoriesPermission) {
-      return left(
-        new UnauthorizedError('You do not have permission to access categories')
-      )
+    if (isLeft(checkUser)) {
+      return left(checkUser.value)
     }
-    const categoryIds = userCategoriesPermission.map(
-      (userCategory) => userCategory.categoryId
-    )
-    const userCategories = await db.query.category.findMany({
-      where: inArray(category.id, categoryIds),
-      with: {
-        subcategory: {
-          columns: {
-            id: true,
-            name: true,
-            slug: true,
-            description: true,
-            isDefault: true
-          }
-        }
-      }
-    })
-    const userSubcategories = userCategories.flatMap((c) => c.subcategory)
+    const { categories: userCategories, subcategories: userSubcategories } =
+      checkUser.value
+    const allowedSubcategoryIds = userSubcategories.map((sub) => sub.id)
+
+    // Validate category and subcategory slugs exist in user categories
     if (params.category_slug) {
       const allowedCategory = userCategories.find(
         (cat) => cat.slug === params.category_slug
       )
-      if (!allowedCategory) {
+      if (!allowedCategory && !isAdmin) {
         return right({
           pagination: {
             total: 0,
@@ -133,7 +119,7 @@ export async function listPosts(
       const allowedSubcategory = userSubcategories.find(
         (sub) => sub.slug === params.subcategory_slug
       )
-      if (!allowedSubcategory) {
+      if (!allowedSubcategory && !isAdmin) {
         return right({
           pagination: {
             total: 0,
@@ -231,9 +217,8 @@ export async function listPosts(
       whereList.push(eq(post.subcategoryId, subcategoryResult.id))
     }
 
-    if (!params.category_slug && !params.subcategory_slug) {
+    if (!params.category_slug && !params.subcategory_slug && !isAdmin) {
       // 3. If no category or subcategory is specified, filter by user categories
-      const allowedSubcategoryIds = userSubcategories.map((sub) => sub.id)
       whereList.push(inArray(post.subcategoryId, allowedSubcategoryIds))
     }
 
