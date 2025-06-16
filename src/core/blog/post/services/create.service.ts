@@ -13,6 +13,7 @@ import { auth } from '@/infra/lib/better-auth/auth'
 import type { zod } from '@/infra/lib/zod'
 import { createPostSchema } from '@/infra/validations/schemas/post'
 import { eq } from 'drizzle-orm'
+import { checkUserCategories } from '../../user/services'
 import type { IPostDTO } from '../dto'
 
 export async function createPost(
@@ -34,9 +35,9 @@ export async function createPost(
       )
     }
     const sessionResult = await ensureAuthenticated(request)
-    if (isLeft(sessionResult)) return sessionResult
-
-    // TODO: Add a check for the user's permissions to create a post in a specific category
+    if (isLeft(sessionResult)) return left(sessionResult.value)
+    const session = sessionResult.value
+    const isAdmin = session!.user.role === 'admin'
 
     const bodyData = await request.json()
 
@@ -48,13 +49,29 @@ export async function createPost(
         )
       )
     }
+    const checkUser = await checkUserCategories({
+      userId: session?.user.id!
+    })
+    if (isLeft(checkUser)) {
+      return left(checkUser.value)
+    }
+    const { categories: userCategories, subcategories: userSubcategories } =
+      checkUser.value
 
+    // Check if the user has permission to create posts in the specified category
     const categoryData = await db.query.category.findFirst({
       where: eq(category.slug, parsed.data.categorySlug)
     })
 
     if (!categoryData) {
       return left(new ValidationError('Category not found'))
+    }
+    if (!userCategories.some((c) => c.slug === categoryData.slug) && !isAdmin) {
+      return left(
+        new UnauthorizedError(
+          'You do not have permission to create posts in this category'
+        )
+      )
     }
 
     const subcategorySlug = parsed.data.subcategorySlug
@@ -64,6 +81,15 @@ export async function createPost(
     const subcategoryData = await db.query.subcategory.findFirst({
       where: eq(subcategory.slug, subcategorySlug)
     })
+
+    if (
+      !userSubcategories.find(
+        (subcategoryData) => subcategoryData.slug === subcategorySlug
+      ) &&
+      !isAdmin
+    ) {
+      return left(new ValidationError('Subcategory not found'))
+    }
 
     if (!subcategoryData) {
       return left(
