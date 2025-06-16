@@ -49,6 +49,8 @@ export async function createPost(
         )
       )
     }
+
+    // Check if the user has permission to create posts
     const checkUser = await checkUserCategories({
       userId: session?.user.id!
     })
@@ -60,7 +62,7 @@ export async function createPost(
 
     // Check if the user has permission to create posts in the specified category
     const categoryData = await db.query.category.findFirst({
-      where: eq(category.slug, parsed.data.categorySlug)
+      where: eq(category.slug, parsed.data.category_slug)
     })
 
     if (!categoryData) {
@@ -74,22 +76,13 @@ export async function createPost(
       )
     }
 
-    const subcategorySlug = parsed.data.subcategorySlug
-      ? parsed.data.subcategorySlug
-      : `${parsed.data.categorySlug}-default`
+    const subcategorySlug = parsed.data.subcategory_slug
+      ? parsed.data.subcategory_slug
+      : `${parsed.data.category_slug}-default`
 
     const subcategoryData = await db.query.subcategory.findFirst({
       where: eq(subcategory.slug, subcategorySlug)
     })
-
-    if (
-      !userSubcategories.find(
-        (subcategoryData) => subcategoryData.slug === subcategorySlug
-      ) &&
-      !isAdmin
-    ) {
-      return left(new ValidationError('Subcategory not found'))
-    }
 
     if (!subcategoryData) {
       return left(
@@ -97,6 +90,19 @@ export async function createPost(
           subcategorySlug.includes('default')
             ? 'Subcategory default slug not found'
             : 'Subcategory not found'
+        )
+      )
+    }
+
+    if (
+      !userSubcategories.find(
+        (subcategoryData) => subcategoryData.slug === subcategorySlug
+      ) &&
+      !isAdmin
+    ) {
+      return left(
+        new UnauthorizedError(
+          'You do not have permission to create posts in this subcategory'
         )
       )
     }
@@ -109,18 +115,21 @@ export async function createPost(
       return left(new ConflictError('Post with this slug already exists'))
     }
 
-    const [data] = await db
-      .insert(post)
-      .values({
-        title: parsed.data.title,
-        slug: parsed.data.slug,
-        excerpt: parsed.data.excerpt,
-        featuredImage: parsed.data.featuredImage,
-        content: parsed.data.content,
-        subcategoryId: subcategoryData.id,
-        authorId: sessionResult.value?.user.id!
-      })
-      .returning()
+    const data = await db.transaction(async (tx) => {
+      const [postCreated] = await tx
+        .insert(post)
+        .values({
+          title: parsed.data.title,
+          slug: parsed.data.slug,
+          excerpt: parsed.data.excerpt,
+          featuredImage: parsed.data.featured_image,
+          content: parsed.data.content,
+          subcategoryId: subcategoryData.id,
+          authorId: sessionResult.value?.user.id!
+        })
+        .returning()
+      return postCreated
+    })
 
     const { createdAt, updatedAt, ...categoryDataFiltered } = categoryData
 
