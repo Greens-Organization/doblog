@@ -26,7 +26,7 @@ export async function checkUserCategories({
   })
   if (!userCategoriesPermission) {
     return left(
-      new UnauthorizedError('You do not have permission to access categories')
+      new UnauthorizedError('Problem fetching user categories permissions')
     )
   }
   const categoryIds = userCategoriesPermission.map(
