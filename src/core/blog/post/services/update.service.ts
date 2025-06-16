@@ -80,6 +80,15 @@ export async function updatePost(
       )
     }
 
+    // Check if a post with the same slug already exists
+    const existPostWithThisSlug = await db.query.post.findFirst({
+      where: eq(post.slug, parsed.data.slug)
+    })
+
+    if (existPostWithThisSlug) {
+      return left(new ConflictError('Post with this slug already exists'))
+    }
+
     // Check if the user has permission to create posts
     const checkUser = await checkUserCategories({
       userId: session?.user.id!
@@ -137,15 +146,6 @@ export async function updatePost(
           'You do not have permission to create posts in this subcategory'
         )
       )
-    }
-
-    // Check if a post with the same slug already exists
-    const existPostWithThisSlug = await db.query.post.findFirst({
-      where: eq(post.slug, parsed.data.slug)
-    })
-
-    if (existPostWithThisSlug) {
-      return left(new ConflictError('Post with this slug already exists'))
     }
 
     // Update the post
