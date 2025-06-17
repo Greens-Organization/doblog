@@ -1,5 +1,6 @@
 'use client'
-import { updateCategory } from '@/actions/blog/category/update-caterory'
+import { deleteCategory, updateCategory } from '@/actions/blog/category'
+import { DeleteButton } from '@/components/buttons'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -35,8 +36,9 @@ export function UpdateCategorySheet({ id, ...rest }: UpdateCategorySheetProps) {
         <SheetHeader>
           <SheetTitle>Atualizar categoria</SheetTitle>
         </SheetHeader>
-        <main className="px-4">
+        <main className="px-4 grid gap-3">
           <CategoryForm
+            submitLabel="Atualizar"
             defaultValues={rest}
             onSubmit={async (data) => {
               toast.loading('Atualizando categoria...')
@@ -52,6 +54,22 @@ export function UpdateCategorySheet({ id, ...rest }: UpdateCategorySheetProps) {
               toast.success('Categoria atualizada!')
               router.refresh()
               setOpen(false)
+            }}
+          />
+          <DeleteButton
+            action={async () => {
+              toast.loading('Deletando categoria...')
+              const res = await deleteCategory(id)
+
+              toast.dismiss()
+
+              if (!res.success) {
+                toast.error(res.error)
+                return
+              }
+              toast.success('Categoria deletada!')
+              setOpen(false)
+              router.refresh()
             }}
           />
         </main>

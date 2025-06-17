@@ -25,9 +25,14 @@ type Schema = z.infer<typeof schema>
 interface CategoryFormProps {
   onSubmit: (data: Schema) => void
   defaultValues?: Partial<Schema>
+  submitLabel?: string
 }
 
-export function CategoryForm({ onSubmit, defaultValues }: CategoryFormProps) {
+export function CategoryForm({
+  onSubmit,
+  defaultValues,
+  submitLabel = 'Adicionar'
+}: CategoryFormProps) {
   const form = useForm<Schema>({
     resolver: zodResolver(schema),
     defaultValues: defaultValues
@@ -42,7 +47,7 @@ export function CategoryForm({ onSubmit, defaultValues }: CategoryFormProps) {
           defaultValue=""
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nome da categoria</FormLabel>
+              <FormLabel>Nome</FormLabel>
               <FormControl>
                 <Input id="name" placeholder="Marketing Digital" {...field} />
               </FormControl>
@@ -57,7 +62,7 @@ export function CategoryForm({ onSubmit, defaultValues }: CategoryFormProps) {
           defaultValue=""
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Slug da categoria</FormLabel>
+              <FormLabel>Slug</FormLabel>
               <FormControl>
                 <Input id="slug" placeholder="marketing-digital" {...field} />
               </FormControl>
@@ -72,7 +77,7 @@ export function CategoryForm({ onSubmit, defaultValues }: CategoryFormProps) {
           defaultValue=""
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Descrição da categoria</FormLabel>
+              <FormLabel>Descrição</FormLabel>
               <FormControl>
                 <Textarea
                   id="slug"
@@ -87,9 +92,7 @@ export function CategoryForm({ onSubmit, defaultValues }: CategoryFormProps) {
           )}
         />
 
-        <Button disabled={form.formState.isSubmitting}>
-          Adicionar Categoria
-        </Button>
+        <Button disabled={form.formState.isSubmitting}>{submitLabel}</Button>
       </form>
     </Form>
   )

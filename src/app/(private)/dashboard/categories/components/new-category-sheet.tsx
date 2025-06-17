@@ -1,5 +1,5 @@
 'use client'
-import { createCategory } from '@/actions/blog/category/create-category'
+import { createCategory } from '@/actions/blog/category'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
