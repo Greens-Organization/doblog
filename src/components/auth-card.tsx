@@ -1,7 +1,4 @@
 'use client'
-
-import { Icons } from '@/components/icons'
-import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -10,25 +7,19 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card'
-import { signIn } from '@/infra/lib/better-auth/auth-client'
 import { cn } from '@/infra/lib/utils'
-import { Loader2 } from 'lucide-react'
 import Link from 'next/link'
-import { useState } from 'react'
+import { SignInForm, SignUpForm } from './auth-form'
 
 export default function AuthCard({
-  title,
   description,
-  mode = 'sign-in'
+  mode = 'sign-in',
+  title
 }: {
   title: string
   description: string
   mode?: 'sign-in' | 'sign-up'
 }) {
-  const [githubLoading, setGithubLoading] = useState(false)
-  const [googleLoading, setGoogleLoading] = useState(false)
-  const [discordLoading, setDiscordLoading] = useState(false)
-
   return (
     <Card className="max-w-md w-full rounded-none border-dashed">
       <CardHeader>
@@ -39,36 +30,8 @@ export default function AuthCard({
       </CardHeader>
       <CardContent>
         <div className="grid gap-4">
-          <div
-            className={cn(
-              'w-full gap-2 flex items-center',
-              'justify-between flex-col'
-            )}
-          >
-            <SignInButton
-              title="Sign in with Github"
-              provider="github"
-              loading={githubLoading}
-              setLoading={setGithubLoading}
-              callbackURL="/dashboard"
-              icon={<Icons.Github />}
-            />
-            <SignInButton
-              title="Sign in with Google"
-              provider="google"
-              loading={googleLoading}
-              setLoading={setGoogleLoading}
-              callbackURL="/dashboard"
-              icon={<Icons.Google />}
-            />
-            <SignInButton
-              title="Sign in with Discord"
-              provider="discord"
-              loading={discordLoading}
-              setLoading={setDiscordLoading}
-              callbackURL="/dashboard"
-              icon={<Icons.Discord />}
-            />
+          <div className={cn('w-full gap-2 flex', 'justify-between flex-col')}>
+            {mode === 'sign-in' ? <SignInForm /> : <SignUpForm />}
           </div>
         </div>
       </CardContent>
@@ -98,46 +61,5 @@ export default function AuthCard({
         </p>
       </CardFooter>
     </Card>
-  )
-}
-
-const SignInButton = ({
-  title,
-  provider,
-  loading,
-  setLoading,
-  callbackURL,
-  icon
-}: {
-  title: string
-  provider: 'github' | 'google' | 'discord'
-  loading: boolean
-  setLoading: (loading: boolean) => void
-  callbackURL: string
-  icon: React.ReactNode
-}) => {
-  return (
-    <Button
-      variant="outline"
-      size="lg"
-      className={cn('w-full gap-2 border-dashed')}
-      disabled={loading}
-      onClick={async () => {
-        await signIn.social(
-          {
-            provider: provider,
-            callbackURL: callbackURL
-          },
-          {
-            onRequest: (ctx) => {
-              setLoading(true)
-            }
-          }
-        )
-      }}
-    >
-      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : icon}
-      {title}
-    </Button>
   )
 }
