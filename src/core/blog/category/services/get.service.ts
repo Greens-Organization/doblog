@@ -52,13 +52,13 @@ export async function getCategory(
         )
       )
     }
+    const { id } = parsedParam.data
 
     const url = new URL(request.url)
     const searchParams = searchParamSchema.parse({
       status: url.searchParams.get('status') ?? undefined
     })
 
-    const { id } = parsedParam.data
     const { status } = searchParams
 
     const query = sql`

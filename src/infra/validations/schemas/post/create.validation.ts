@@ -14,11 +14,11 @@ export const createPostSchema = () => {
     content: zod.string({ error: 'Content must be a valid string' }).min(10, {
       error: 'Content must have at least 10 characters'
     }),
-    featuredImage: zod
+    featured_image: zod
       .url({ error: 'Featured image must be a valid URL' })
       .optional(),
-    categorySlug: zod.string({ error: 'Category slug is required' }),
-    subcategorySlug: zod
+    category_slug: zod.string({ error: 'Category slug is required' }),
+    subcategory_slug: zod
       .string({ error: 'Subcategory slug must be a valid string' })
       .optional()
   })

@@ -16,7 +16,13 @@ export async function createFirstUser(
   try {
     const blogData = await db.query.organization.findFirst()
     const isExistUser = await db.query.user.findFirst()
-    if (!blogData || isExistUser) {
+    if (!blogData) {
+      return left(
+        new ConflictError('I created the blog first', { statusCode: 428 })
+      )
+    }
+
+    if (isExistUser) {
       return left(new ConflictError('Configuration already done'))
     }
 

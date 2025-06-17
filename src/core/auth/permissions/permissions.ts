@@ -31,7 +31,18 @@ const admin = ac.newRole({
 
 const editor = ac.newRole({
   blog: ['read'],
-  post: ['read', 'create', 'update', 'archive', 'publish', 'moveToDraft']
+  category: ['list', 'read'],
+  subcategory: ['list', 'read'],
+  post: [
+    'read',
+    'create',
+    'list',
+    'update',
+    'archive',
+    'publish',
+    'moveToDraft'
+  ],
+  profile: ['update']
 })
 
 export { ac, admin, editor }

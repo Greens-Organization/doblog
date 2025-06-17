@@ -24,8 +24,13 @@ function isDatabaseError(error: unknown): boolean {
 }
 
 export function serviceHandleError(error: unknown, origin = 'Unknown origin') {
-  if (error instanceof SyntaxError) {
-    logger.error(`SyntaxError (${origin}):`, error.message, error.stack)
+  if (
+    error instanceof SyntaxError ||
+    error instanceof TypeError ||
+    error instanceof CustomSyntaxError
+  ) {
+    logger.error(`SyntaxError (${origin}):`, error.message)
+    logger.debug(error.stack)
     return new CustomSyntaxError(error.message)
   }
 

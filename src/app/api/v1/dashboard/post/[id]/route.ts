@@ -1,9 +1,13 @@
-import { updatePost } from '@/core/blog/post/services'
-import { archivePost } from '@/core/blog/post/services/archive.service'
-import { movePostToDraft } from '@/core/blog/post/services/move-to-draft.service'
-import { publishPost } from '@/core/blog/post/services/publish.service'
-import { createApiHandler } from '@/infra/helpers/handlers/api/create-api-handler'
+import {
+  getPost,
+  updatePost,
+  publishPost,
+  movePostToDraft,
+  archivePost
+} from '@/core/blog/post/services'
+import { createApiHandler } from '@/infra/helpers/handlers/api'
 
+export const GET = createApiHandler(getPost)
 export const PUT = createApiHandler(updatePost)
 export const POST = createApiHandler(publishPost)
 export const PATCH = createApiHandler(movePostToDraft)
