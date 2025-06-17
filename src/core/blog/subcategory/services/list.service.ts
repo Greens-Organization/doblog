@@ -1,9 +1,10 @@
 import type { ISubcategoryDTO } from '@/core/blog/subcategory/dto'
 import type { AppEither } from '@/core/error/app-either.protocols'
-import { left, right } from '@/core/error/either'
+import { isLeft, left, right } from '@/core/error/either'
 import { UnauthorizedError } from '@/core/error/errors'
 import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
+import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { sanitizeValue } from '@/infra/helpers/sanitize'
 import { auth } from '@/infra/lib/better-auth/auth'
 import { zod } from '@/infra/lib/zod'
@@ -34,6 +35,12 @@ export async function listSubcategories(
   request: Request
 ): Promise<AppEither<ResponseDTO>> {
   try {
+    const sessionResult = await ensureAuthenticated(request)
+    if (isLeft(sessionResult)) return left(sessionResult.value)
+    const session = sessionResult.value!
+    const isAdmin = session.user.role === 'admin'
+    const isEditor = session.user.role === 'editor'
+
     const canAccess = await auth.api.hasPermission({
       headers: request.headers,
       body: {
@@ -65,43 +72,38 @@ export async function listSubcategories(
 
     // Build WHERE conditions dynamically
     const conditions = []
-    const queryParams: unknown[] = []
-
-    if (params.id) {
-      conditions.push(`s.id = ${sanitizeValue(params.id)}`)
-    }
-
-    if (params.slug) {
+    if (params.id) conditions.push(`s.id = '${sanitizeValue(params.id)}'`)
+    if (params.slug)
       conditions.push(`s.slug ILIKE '%${sanitizeValue(params.slug)}%'`)
-    }
-
-    if (params.name) {
+    if (params.name)
       conditions.push(`s.name ILIKE '%${sanitizeValue(params.name)}%'`)
-    }
+    if (params.category_id)
+      conditions.push(`s.category_id = '${sanitizeValue(params.category_id)}'`)
 
-    if (params.category_id) {
-      conditions.push(`s.category_id = $${queryParams.push()}`)
+    let joinClause = 'INNER JOIN category c ON s.category_id = c.id'
+    if (isEditor) {
+      joinClause += ' INNER JOIN user_to_category utc ON utc.category_id = c.id'
+      conditions.push(`utc.user_id = '${session.user.id}'`)
     }
 
     const whereClause =
       conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
 
-    // Count total records
+    // 5. Count total records
     const countQuery = sql`
-      SELECT COUNT(*)::integer as total
+      SELECT COUNT(DISTINCT s.id)::integer as total
       FROM subcategory s
-      INNER JOIN category c ON s.category_id = c.id
+      ${sql.raw(joinClause)}
       ${sql.raw(whereClause)}
     `
-
     const totalResult = await db.execute(countQuery)
-    const total = totalResult.rows[0].total as number
+    const total = Number(totalResult.rows[0]?.total ?? 0)
 
     const totalPages = Math.ceil(total / perPage)
     const hasNext = page < totalPages
     const hasPrevious = page > 1
 
-    // Main query with pagination
+    // 6. Query principal
     const query = sql`
       SELECT 
         s.id,
@@ -125,7 +127,7 @@ export async function listSubcategories(
           'description', c.description
         ) as category
       FROM subcategory s
-      INNER JOIN category c ON s.category_id = c.id
+      ${sql.raw(joinClause)}
       LEFT JOIN post p ON s.id = p.subcategory_id
       ${sql.raw(whereClause)}
       GROUP BY s.id, s.name, s.slug, s.description, s.created_at, s.updated_at,
