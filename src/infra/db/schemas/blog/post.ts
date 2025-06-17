@@ -4,11 +4,9 @@ import { user } from '../auth/user'
 import { createdAt, idPrimaryKey, updatedAt } from '../helpers'
 import { subcategory } from './subcategory'
 
-export const postStatusEnum = pgEnum('post_status', [
-  'draft',
-  'published',
-  'archived'
-])
+export const PostStatus = ['draft', 'published', 'archived'] as const
+
+export const postStatusEnum = pgEnum('post_status', PostStatus)
 
 export const post = pgTable('post', {
   id: idPrimaryKey,
@@ -23,7 +21,7 @@ export const post = pgTable('post', {
     .references(() => subcategory.id),
   authorId: text('author_id')
     .notNull()
-    .references(() => user.id, { onDelete: 'cascade' }),
+    .references(() => user.id),
   createdAt,
   updatedAt,
   publishedAt: timestamp('published_at', { withTimezone: true, mode: 'date' })

@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'bun:test'
-import { env } from '@/env'
+import users from '@/infra/db/seed/assets/users.json'
 import { constants } from '@test/e2e/helpers/constants'
+import { describe, expect, it } from 'bun:test'
 
 describe('Auth - Sign In', () => {
   it('e2e: POST api/auth/sign-in deve retornar sucesso para login', async () => {
@@ -10,8 +10,8 @@ describe('Auth - Sign In', () => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        email: env.ADMIN_EMAIL,
-        password: env.ADMIN_PASSWORD
+        email: users.admin.email,
+        password: users.admin.password
       })
     })
 

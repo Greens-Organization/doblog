@@ -1,16 +1,15 @@
 import type { AppEither } from '@/core/error/app-either.protocols'
-import { isLeft, left, right } from '@/core/error/either'
+import { left, right } from '@/core/error/either'
 import {
-  DatabaseError,
   NotFoundError,
+  UnauthorizedError,
   ValidationError
 } from '@/core/error/errors'
+import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { subcategory } from '@/infra/db/schemas/blog'
-import { ensureAuthenticated } from '@/infra/helpers/auth'
-import { ensureIsAdmin } from '@/infra/helpers/auth/ensure-is-admin'
 import { extractAndValidatePathParams } from '@/infra/helpers/params'
-import { logger } from '@/infra/lib/logger/logger-server'
+import { auth } from '@/infra/lib/better-auth/auth'
 import { zod } from '@/infra/lib/zod'
 import { eq } from 'drizzle-orm'
 import type { ISubcategoryDTO } from '../dto'
@@ -23,11 +22,20 @@ export async function deleteSubcategory(
   request: Request
 ): Promise<AppEither<{ message: string; deleted: ISubcategoryDTO }>> {
   try {
-    const sessionResult = await ensureAuthenticated(request)
-    if (isLeft(sessionResult)) return sessionResult
+    const canAccess = await auth.api.hasPermission({
+      headers: request.headers,
+      body: {
+        permissions: {
+          subcategory: ['delete']
+        }
+      }
+    })
 
-    const isAdmin = ensureIsAdmin(sessionResult.value)
-    if (isLeft(isAdmin)) return isAdmin
+    if (!canAccess.success) {
+      return left(
+        new UnauthorizedError('You do not have permission to do this')
+      )
+    }
 
     const parsedParam = extractAndValidatePathParams(request, pathParamSchema, [
       'id'
@@ -74,13 +82,6 @@ export async function deleteSubcategory(
       deleted: { ...deletedSubcategory, category: existingSubcategory.category }
     })
   } catch (error) {
-    if (error instanceof zod.ZodError) {
-      return left(
-        new ValidationError(error.issues.map((e) => e.message).join('; '))
-      )
-    }
-
-    logger.error('Unhandled error in delete subcategory:', error)
-    return left(new DatabaseError())
+    return left(serviceHandleError(error, 'deleteSubcategory'))
   }
 }

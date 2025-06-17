@@ -1,0 +1,14 @@
+{
+  "admin": {
+    "name": "Admin Person",
+    "email": "admin@admin.com",
+    "password": "admin1234",
+    "role": "admin"
+  },
+  "editor": {
+    "name": "Editor Person",
+    "email": "editor@editor.com",
+    "password": "editor1234",
+    "role": "editor"
+  }
+}

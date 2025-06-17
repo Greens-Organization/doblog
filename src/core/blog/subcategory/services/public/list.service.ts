@@ -1,9 +1,9 @@
 import type { AppEither } from '@/core/error/app-either.protocols'
 import { left, right } from '@/core/error/either'
-import { DatabaseError, ValidationError } from '@/core/error/errors'
+import { ValidationError } from '@/core/error/errors'
+import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { category, subcategory } from '@/infra/db/schemas/blog'
-import { logger } from '@/infra/lib/logger/logger-server'
 import { zod } from '@/infra/lib/zod'
 import { and, eq } from 'drizzle-orm'
 import type { ISubcategoryDTO } from '../../dto'
@@ -14,7 +14,7 @@ const searchParamsSchema = zod.object({
   categorySlug: zod.string().optional()
 })
 
-export async function listSubcategories(
+export async function listSubcategoriesPublic(
   request: Request
 ): Promise<AppEither<Omit<ISubcategoryDTO, 'id'>[]>> {
   try {
@@ -69,12 +69,6 @@ export async function listSubcategories(
     //TODO: add total quantity of items in each category
     return right(result)
   } catch (error) {
-    console.log('error', error)
-    if (error instanceof zod.ZodError) {
-      return left(new ValidationError('Invalid query parameters'))
-    }
-
-    logger.error('DB error in listSubcategories:', error)
-    return left(new DatabaseError())
+    return left(serviceHandleError(error, 'listSubcategories'))
   }
 }

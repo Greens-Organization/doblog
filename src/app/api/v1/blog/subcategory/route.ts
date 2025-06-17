@@ -1,4 +1,4 @@
-import { listSubcategories } from '@/core/blog/subcategory/services'
+import { listSubcategoriesPublic } from '@/core/blog/subcategory/services'
 import { createApiHandler } from '@/infra/helpers/handlers/api/create-api-handler'
 
-export const GET = createApiHandler(listSubcategories)
+export const GET = createApiHandler(listSubcategoriesPublic)

@@ -12,8 +12,6 @@ export const env = createEnv({
       .enum(['production', 'development', 'test'])
       .default('development'),
     DEBUG: booleanSchema,
-    ADMIN_EMAIL: zod.email().optional().default('admin@grngroup.net'),
-    ADMIN_PASSWORD: zod.string().optional().default('admin123'),
     // BetterAuth
     BETTER_AUTH_URL: zod.string().min(1).optional(),
     BETTER_AUTH_SECRET: zod.string().min(1).optional(),

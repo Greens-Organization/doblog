@@ -2,24 +2,20 @@ import type { IPublicCategoryDTO } from '@/core/blog/category/dto'
 import type { IPublicSubcategoryDTO } from '@/core/blog/subcategory/dto'
 import type { AppEither } from '@/core/error/app-either.protocols'
 import { left, right } from '@/core/error/either'
-import {
-  DatabaseError,
-  NotFoundError,
-  ValidationError
-} from '@/core/error/errors'
+import { NotFoundError, ValidationError } from '@/core/error/errors'
+import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { category, post, subcategory } from '@/infra/db/schemas/blog'
-import { logger } from '@/infra/lib/logger/logger-server'
 import { zod } from '@/infra/lib/zod'
 import { and, count, eq } from 'drizzle-orm'
-import type { IGetPostDTO } from '../../dto'
+import type { IGetPublishedPostDTO } from '../../dto'
 
 const searchParamsSchema = zod
   .object({
     category_slug: zod.string().optional(),
     subcategory_slug: zod.string().optional(),
-    page: zod.coerce.number().optional().default(1),
-    per_page: zod.coerce.number().optional().default(25)
+    page: zod.coerce.number().min(1).optional().default(1),
+    per_page: zod.coerce.number().min(1).optional().default(25)
   })
   .refine(
     (data: { category_slug?: string; subcategory_slug?: string }) =>
@@ -31,7 +27,7 @@ const searchParamsSchema = zod
 interface ResponseDTO {
   category: IPublicCategoryDTO
   subcategory: IPublicSubcategoryDTO
-  posts: IGetPostDTO[]
+  data: IGetPublishedPostDTO[]
   pagination: {
     total: number
     page: number
@@ -42,7 +38,7 @@ interface ResponseDTO {
   }
 }
 
-export async function listPostsByCategoryOrSubcategory(
+export async function listPostsByCategoryOrSubcategoryPublic(
   request: Request
 ): Promise<AppEither<ResponseDTO>> {
   try {
@@ -210,9 +206,6 @@ export async function listPostsByCategoryOrSubcategory(
     const { id: subcategoryId, ...publicSubcategoryData } = subcategoryData
 
     return right({
-      category: publicCategoryData,
-      subcategory: publicSubcategoryData,
-      posts,
       pagination: {
         total,
         page,
@@ -220,20 +213,12 @@ export async function listPostsByCategoryOrSubcategory(
         total_pages: totalPages,
         has_next: hasNext,
         has_previous: hasPrevious
-      }
+      },
+      category: publicCategoryData,
+      subcategory: publicSubcategoryData,
+      data: posts
     })
   } catch (error) {
-    if (error instanceof zod.ZodError) {
-      return left(
-        new ValidationError(
-          (error as zod.ZodError).issues
-            .map((e: { message: any }) => e.message)
-            .join('; ')
-        )
-      )
-    }
-
-    logger.error('DB error in listPostsByCategoryOrSubcategory:', error)
-    return left(new DatabaseError())
+    return left(serviceHandleError(error, 'listPostsByCategoryOrSubcategory'))
   }
 }

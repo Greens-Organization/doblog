@@ -3,5 +3,5 @@ import type { BaseError } from './errors/base-error'
 
 export type AppEither<R> = Either<
   BaseError,
-  { body: R; statusCode?: number } | R
+  { body: R; statusCode?: number; headers?: HeadersInit } | R
 >

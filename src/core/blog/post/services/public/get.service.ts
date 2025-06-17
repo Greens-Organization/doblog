@@ -1,25 +1,21 @@
 import type { AppEither } from '@/core/error/app-either.protocols'
 import { left, right } from '@/core/error/either'
-import {
-  DatabaseError,
-  NotFoundError,
-  ValidationError
-} from '@/core/error/errors'
+import { NotFoundError, ValidationError } from '@/core/error/errors'
+import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { post } from '@/infra/db/schemas/blog'
 import { extractAndValidatePathParams } from '@/infra/helpers/params'
-import { logger } from '@/infra/lib/logger/logger-server'
 import { zod } from '@/infra/lib/zod'
 import { and, eq } from 'drizzle-orm'
-import type { IGetPostDTO } from '../../dto'
+import type { IGetPublishedPostDTO } from '../../dto'
 
 const pathParamSchema = zod.object({
   slug: zod.string().min(1, 'Slug is required')
 })
 
-export async function getPostBySlug(
+export async function getPostBySlugPublic(
   request: Request
-): Promise<AppEither<IGetPostDTO>> {
+): Promise<AppEither<IGetPublishedPostDTO>> {
   try {
     const parsedParam = extractAndValidatePathParams(request, pathParamSchema, [
       'slug'
@@ -74,7 +70,6 @@ export async function getPostBySlug(
 
     return right(foundPost)
   } catch (error) {
-    logger.error('DB error in getPostBySlug:', error)
-    return left(new DatabaseError())
+    return left(serviceHandleError(error, 'getPostBySlug'))
   }
 }
