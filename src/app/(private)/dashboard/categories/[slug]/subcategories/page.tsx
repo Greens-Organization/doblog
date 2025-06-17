@@ -1,4 +1,5 @@
-import { listCategories } from '@/actions/blog/category'
+import { listSubcategories } from '@/actions/blog/subcategory'
+import { DashNavbar } from '@/app/(private)/dashboard/components/dash-navbar'
 import { DefaultError } from '@/components/errors'
 import { SearchFilter } from '@/components/filters'
 import { Badge } from '@/components/ui/badge'
@@ -12,44 +13,54 @@ import {
   TableRow
 } from '@/components/ui/table'
 import Link from 'next/link'
-import { DashNavbar } from '../components/dash-navbar'
-import { NewCategorySheet } from './components/new-category-sheet'
-import { UpdateCategorySheet } from './components/update-category-sheet'
+import { NewSubCategorySheet } from './components/new-sub-category-sheet'
+import { UpdateSubCategory } from './components/update-sub-category-sheet'
 
 interface PageProps {
+  params: Promise<{ slug: string }>
   searchParams: Promise<{ name?: string }>
 }
 
-export default async function Page({ searchParams }: PageProps) {
+export default async function Page({ params, searchParams }: PageProps) {
+  const { slug } = await params
   const { name } = await searchParams
-  const categories = await listCategories({ name: name || '' })
 
-  if (!categories.success) {
-    return <DefaultError description={categories.error} />
+  const subcategories = await listSubcategories({ name: name || '' })
+
+  if (!subcategories.success) {
+    return <DefaultError description={subcategories.error} />
   }
 
-  const { data } = categories.data
+  const { data } = subcategories.data
+
+  const subcategoriesFromCategorySlug = data.filter(
+    ({ category }) => category.slug === slug
+  )
 
   return (
     <section>
       <DashNavbar
         navigation={[
           { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Categorias', href: '/dashboard/categories' }
+          { label: 'Categorias', href: '/dashboard/categories' },
+          {
+            label: 'Subcategorias',
+            href: `/dashboard/categories/${slug}/subcategories`
+          }
         ]}
       />
       <div className="flex flex-col gap-4 p-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="head-text-sm">Categorias</h1>
+            <h1 className="head-text-sm">Subcategorias</h1>
             <p className="text-sm md:text-base text-muted-foreground">
-              Gerencie as categorias e subcategorias do blog.
+              Gerencie as subcategorias do blog.
             </p>
           </div>
-          <NewCategorySheet />
+          <NewSubCategorySheet categorySlug={slug} />
         </div>
         <div className="flex items-center gap-2">
-          <SearchFilter name="name" placeholder="Pesquisar categorias..." />
+          <SearchFilter name="name" placeholder="Pesquisar subcategorias..." />
         </div>
         <div className="rounded-md border">
           <Table>
@@ -63,47 +74,34 @@ export default async function Page({ searchParams }: PageProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {!data.length && (
+              {!subcategoriesFromCategorySlug.length && (
                 <TableRow>
                   <TableCell colSpan={5}>
                     Nenhuma categoria encontrada!
                   </TableCell>
                 </TableRow>
               )}
-              {data.map((category, i) => (
+              {subcategoriesFromCategorySlug.map((sub, i) => (
                 <TableRow key={String(i)}>
-                  <TableCell className="font-medium">{category.name}</TableCell>
-                  <TableCell>{category.slug}</TableCell>
+                  <TableCell className="font-medium">{sub.name}</TableCell>
+                  <TableCell>{sub.slug}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">{category.totalPost}</Badge>
+                    <Badge variant="outline">{0}</Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">
-                      {category.subcategory.length}
-                    </Badge>
+                    <Badge variant="outline">{0}</Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button variant="ghost" size="sm" asChild>
-                        <Link
-                          href={`/dashboard/categories/${category.slug}/posts`}
-                        >
-                          Posts
-                        </Link>
+                        <Link href={'/dashboard/categories'}>Posts</Link>
                       </Button>
-                      <UpdateCategorySheet
-                        id={category.id}
-                        description={category.description || ''}
-                        name={category.name}
-                        slug={category.slug}
+                      <UpdateSubCategory
+                        id={sub.id}
+                        description={sub.description || ''}
+                        name={sub.name}
+                        slug={sub.slug}
                       />
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link
-                          href={`/dashboard/categories/${category.slug}/subcategories`}
-                        >
-                          Subcategorias
-                        </Link>
-                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
