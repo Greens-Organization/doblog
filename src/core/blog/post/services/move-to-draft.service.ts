@@ -25,6 +25,11 @@ export async function movePostToDraft(
   request: Request
 ): Promise<AppEither<IPostDTO>> {
   try {
+    const sessionResult = await ensureAuthenticated(request)
+    if (isLeft(sessionResult)) return left(sessionResult.value)
+    const session = sessionResult.value
+    const isAdmin = session!.user.role === 'admin'
+
     const canAccess = await auth.api.hasPermission({
       headers: request.headers,
       body: {
@@ -39,10 +44,6 @@ export async function movePostToDraft(
         new UnauthorizedError('You do not have permission to do this')
       )
     }
-    const sessionResult = await ensureAuthenticated(request)
-    if (isLeft(sessionResult)) return left(sessionResult.value)
-    const session = sessionResult.value
-    const isAdmin = session!.user.role === 'admin'
 
     // Extract and validate path parameters
     const parsedParam = extractAndValidatePathParams(request, pathParamSchema, [
