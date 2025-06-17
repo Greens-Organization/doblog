@@ -24,6 +24,11 @@ export async function getPost(
   request: Request
 ): Promise<AppEither<IGetPostDTO>> {
   try {
+    const sessionResult = await ensureAuthenticated(request)
+    if (isLeft(sessionResult)) return left(sessionResult.value)
+    const session = sessionResult.value
+    const isAdmin = session!.user.role === 'admin'
+
     const canAccess = await auth.api.hasPermission({
       headers: request.headers,
       body: {
@@ -38,14 +43,6 @@ export async function getPost(
         new UnauthorizedError('You do not have permission to do this')
       )
     }
-    const session = await ensureAuthenticated(request)
-    if (isLeft(session)) {
-      return left(session.value)
-    }
-    if (!session.value || !session.value.user) {
-      return left(new UnauthorizedError('User not found in session'))
-    }
-    const isAdmin = session.value.user.role === 'admin'
 
     const parsedParam = extractAndValidatePathParams(request, pathParamSchema, [
       'id'
@@ -63,7 +60,7 @@ export async function getPost(
 
     // Check if the user has categories
     const checkUser = await checkUserCategories({
-      userId: session.value.user.id
+      userId: session!.user.id
     })
     if (isLeft(checkUser)) {
       return left(checkUser.value)

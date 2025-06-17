@@ -26,6 +26,11 @@ export async function updatePost(
   request: Request
 ): Promise<AppEither<IPostDTO>> {
   try {
+    const sessionResult = await ensureAuthenticated(request)
+    if (isLeft(sessionResult)) return left(sessionResult.value)
+    const session = sessionResult.value
+    const isAdmin = session!.user.role === 'admin'
+
     const canAccess = await auth.api.hasPermission({
       headers: request.headers,
       body: {
@@ -40,10 +45,6 @@ export async function updatePost(
         new UnauthorizedError('You do not have permission to do this')
       )
     }
-    const sessionResult = await ensureAuthenticated(request)
-    if (isLeft(sessionResult)) return left(sessionResult.value)
-    const session = sessionResult.value
-    const isAdmin = session!.user.role === 'admin'
 
     const parsedParam = extractAndValidatePathParams(request, pathParamSchema, [
       'id'
