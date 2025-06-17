@@ -45,7 +45,7 @@ export async function createSubcategory(
     }
 
     const categoryData = await db.query.category.findFirst({
-      where: eq(category.id, parsed.data.categorySlug)
+      where: eq(category.id, parsed.data.category_slug)
     })
 
     if (!categoryData) {

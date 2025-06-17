@@ -16,7 +16,7 @@ export const createSubcategorySchema = () => {
       .max(255, {
         error: 'Slug must have at most 255 characters'
       }),
-    categorySlug: zod.string({
+    category_slug: zod.string({
       error: (issue) =>
         issue.input === undefined
           ? 'Category slug is required'

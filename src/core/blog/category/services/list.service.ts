@@ -1,13 +1,15 @@
 import type { ICategoryDTO } from '@/core/blog/category/dto'
 import type { AppEither } from '@/core/error/app-either.protocols'
-import { left, right } from '@/core/error/either'
+import { isLeft, left, right } from '@/core/error/either'
 import { UnauthorizedError } from '@/core/error/errors'
 import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
+import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { sanitizeValue } from '@/infra/helpers/sanitize'
 import { auth } from '@/infra/lib/better-auth/auth'
 import { zod } from '@/infra/lib/zod'
 import { sql } from 'drizzle-orm'
+import { buildCategoryQueryParts } from './helpers/build-category-query'
 
 const searchParamsSchema = zod.object({
   id: zod.uuid().optional(),
@@ -33,6 +35,11 @@ export async function listCategories(
   request: Request
 ): Promise<AppEither<ResponseDTO>> {
   try {
+    const sessionResult = await ensureAuthenticated(request)
+    if (isLeft(sessionResult)) return left(sessionResult.value)
+    const session = sessionResult.value!
+    const isAdmin = session.user.role === 'admin'
+
     const canAccess = await auth.api.hasPermission({
       headers: request.headers,
       body: {
@@ -63,29 +70,25 @@ export async function listCategories(
 
     // Build WHERE conditions dynamically
     const conditions = []
-
-    if (params.id) {
-      conditions.push(`c.id = '${sanitizeValue(params.id)}'`)
-    }
-
-    if (params.slug) {
+    if (params.id) conditions.push(`c.id = '${sanitizeValue(params.id)}'`)
+    if (params.slug)
       conditions.push(`c.slug ILIKE '%${sanitizeValue(params.slug)}%'`)
-    }
-
-    if (params.name) {
+    if (params.name)
       conditions.push(`c.name ILIKE '%${sanitizeValue(params.name)}%'`)
-    }
 
-    const whereClause =
-      conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+    const { joinClause, whereClause } = buildCategoryQueryParts({
+      isAdmin,
+      userId: session.user.id,
+      conditions
+    })
 
     // Count total records
     const countQuery = sql`
-      SELECT COUNT(*)::integer as total
-      FROM category c
-      ${sql.raw(whereClause)}
-    `
-
+    SELECT COUNT(DISTINCT c.id)::integer as total
+    FROM category c
+    ${sql.raw(joinClause)}
+    ${sql.raw(whereClause)}
+  `
     const totalResult = await db.execute(countQuery)
     const total = totalResult.rows[0].total as number
 
@@ -95,41 +98,42 @@ export async function listCategories(
 
     // Main query with pagination
     const query = sql`
-      SELECT 
-        c.id,
-        c.name,
-        c.slug,
-        c.description,
-        c.created_at as "createdAt",
-        c.updated_at as "updatedAt",
-        COALESCE(
-          COUNT(
-            CASE 
-              WHEN p.status = 'published'
-              THEN 1 
-            END
-          ), 0
-        )::integer as "totalPost",
-        COALESCE(
-          json_agg(
-            json_build_object(
-              'id', s.id,
-              'name', s.name,
-              'slug', s.slug,
-              'description', s.description
-            )
-          ) FILTER (WHERE s.id IS NOT NULL), 
-          '[]'::json
-        ) as subcategory
-      FROM category c
-      LEFT JOIN subcategory s ON c.id = s.category_id
-      LEFT JOIN post p ON s.id = p.subcategory_id
-      ${sql.raw(whereClause)}
-      GROUP BY c.id, c.name, c.slug, c.description, c.created_at, c.updated_at
-      ORDER BY c.created_at DESC
-      LIMIT ${perPage}
-      OFFSET ${offset}
-    `
+    SELECT 
+      c.id,
+      c.name,
+      c.slug,
+      c.description,
+      c.created_at as "createdAt",
+      c.updated_at as "updatedAt",
+      COALESCE(
+        COUNT(
+          CASE 
+            WHEN p.status = 'published'
+            THEN 1 
+          END
+        ), 0
+      )::integer as "totalPost",
+      COALESCE(
+        json_agg(
+          json_build_object(
+            'id', s.id,
+            'name', s.name,
+            'slug', s.slug,
+            'description', s.description
+          )
+        ) FILTER (WHERE s.id IS NOT NULL), 
+        '[]'::json
+      ) as subcategory
+    FROM category c
+    ${sql.raw(joinClause)}
+    LEFT JOIN subcategory s ON c.id = s.category_id
+    LEFT JOIN post p ON s.id = p.subcategory_id
+    ${sql.raw(whereClause)}
+    GROUP BY c.id, c.name, c.slug, c.description, c.created_at, c.updated_at
+    ORDER BY c.created_at DESC
+    LIMIT ${perPage}
+    OFFSET ${offset}
+  `
 
     const result = await db.execute(query)
     const categories = result.rows as unknown as ICategoryDTO[]
