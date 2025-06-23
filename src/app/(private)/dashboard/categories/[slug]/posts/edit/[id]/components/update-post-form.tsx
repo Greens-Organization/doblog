@@ -1,6 +1,10 @@
 'use client'
 
-import { createPost, publishPost } from '@/actions/dashboard/posts'
+import {
+  type getPost,
+  publishPost,
+  updatePost
+} from '@/actions/dashboard/posts'
 import { DefaulTextAreaField } from '@/components/form/defaul-text-area'
 import { DefaultField } from '@/components/form/default-field'
 import { DefaultMarkdownEditor } from '@/components/form/default-markdown-editor'
@@ -10,27 +14,37 @@ import { Save } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
-import { Button } from '@/components/ui/button'
-import { Form } from '@/components/ui/form'
-
 import type { listCategories } from '@/actions/blog/category'
 import type { SuccessData } from '@/actions/types'
+import { Button } from '@/components/ui/button'
+import { Form } from '@/components/ui/form'
 import { createPostSchema } from '@/infra/validations/schemas/post'
 import { useRef } from 'react'
 
-interface CreatePostFormProps {
+interface UpdatePostFormProps {
   categories: SuccessData<typeof listCategories>
+  post: SuccessData<typeof getPost>
 }
 
-export default function CreatePostForm({ categories }: CreatePostFormProps) {
+export function UpdatePostForm({ categories, post }: UpdatePostFormProps) {
   const action = useRef<'CREATE' | 'CREATE-AND-UPDATE'>('CREATE')
-  const form = useForm({
-    resolver: zodResolver(createPostSchema())
-  })
 
   const { data: listCategories } = categories
 
   const category = listCategories.at(0)
+
+  const form = useForm({
+    resolver: zodResolver(createPostSchema()),
+    defaultValues: {
+      category_slug: category?.slug || '',
+      content: post.content,
+      excerpt: post.excerpt,
+      slug: post.slug,
+      title: post.title,
+      subcategory_slug: post.subcategory.slug,
+      featured_image: post.featuredImage || ''
+    }
+  })
 
   const subcategories = category?.subcategory
 
@@ -40,8 +54,9 @@ export default function CreatePostForm({ categories }: CreatePostFormProps) {
         className="flex flex-col gap-4 p-4"
         onSubmit={form.handleSubmit(async (data) => {
           toast.loading('Creating posts')
-          console.log(data, form.getValues())
-          const res = await createPost({
+
+          const res = await updatePost({
+            id: post.id,
             category_slug: data.category_slug,
             content: data.content,
             excerpt: data.excerpt,
@@ -57,7 +72,7 @@ export default function CreatePostForm({ categories }: CreatePostFormProps) {
           }
 
           if (action.current === 'CREATE') {
-            toast.success('Post created.')
+            toast.success('Post updated.')
             form.reset()
             return
           }
@@ -68,13 +83,13 @@ export default function CreatePostForm({ categories }: CreatePostFormProps) {
           toast.dismiss()
           if (!published.success) {
             toast.error(
-              'Error on publish your post but he are created go to posts page to try publish again'
+              'Error on publish your post but he are update go to posts page to try publish again'
             )
             form.reset()
             return
           }
 
-          toast.success('Post created and published!')
+          toast.success('Post updated and published!')
           form.reset()
         })}
       >
@@ -91,15 +106,17 @@ export default function CreatePostForm({ categories }: CreatePostFormProps) {
               <Save className="mr-2 h-4 w-4" />
               Salvar
             </Button>
-            <Button
-              type="submit"
-              onClick={() => {
-                action.current = 'CREATE-AND-UPDATE'
-              }}
-            >
-              <Save className="mr-2 h-4 w-4" />
-              Salvar e publicar
-            </Button>
+            {post.status === 'draft' && (
+              <Button
+                type="submit"
+                onClick={() => {
+                  action.current = 'CREATE-AND-UPDATE'
+                }}
+              >
+                <Save className="mr-2 h-4 w-4" />
+                Salvar e publicar
+              </Button>
+            )}
           </div>
         </div>
         <div className="grid gap-4 md:grid-cols-[2fr_1fr]">
@@ -117,7 +134,6 @@ export default function CreatePostForm({ categories }: CreatePostFormProps) {
               label="Categoria Principal"
               placeholder="Selecione a categoria"
               disabled={true}
-              defaultValue={category?.slug}
               values={
                 category ? [{ label: category.name, value: category.slug }] : []
               }
