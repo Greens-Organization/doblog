@@ -1,4 +1,4 @@
-import { listPosts } from '@/actions/blog/posts/list-posts'
+import { listPosts } from '@/actions/dashboard/posts'
 import { DashNavbar } from '@/app/(private)/dashboard/components/dash-navbar'
 import { DefaultError } from '@/components/errors'
 import { PostsWrapper } from '@/components/posts/posts-wrapper'
