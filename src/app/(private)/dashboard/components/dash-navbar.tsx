@@ -44,7 +44,9 @@ function PageNavigationItem(props: { href: string; content: string }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
-  const isActive = `${pathname}?${searchParams.toString()}` === props.href
+  const query = searchParams.toString() ? `?${searchParams.toString()}` : ''
+
+  const isActive = `${pathname}${query}` === props.href
 
   if (isActive) {
     return (
