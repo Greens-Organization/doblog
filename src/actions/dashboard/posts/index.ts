@@ -1,2 +1,7 @@
 export * from './create-post'
 export * from './publish-post'
+export * from './update-post'
+export * from './get-post'
+export * from './list-posts'
+export * from './archive-post'
+export * from './move-to-draft'
