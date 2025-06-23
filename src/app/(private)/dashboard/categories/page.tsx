@@ -22,7 +22,7 @@ interface PageProps {
 
 export default async function Page({ searchParams }: PageProps) {
   const { name } = await searchParams
-  const categories = await listCategories({ name: name || '' })
+  const categories = await listCategories({ name: name })
 
   if (!categories.success) {
     return <DefaultError description={categories.error} />
@@ -86,7 +86,7 @@ export default async function Page({ searchParams }: PageProps) {
                     <div className="flex justify-end gap-2">
                       <Button variant="ghost" size="sm" asChild>
                         <Link
-                          href={`/dashboard/posts?category=${category.slug}`}
+                          href={`/dashboard/categories/${category.slug}/posts`}
                         >
                           Posts
                         </Link>
