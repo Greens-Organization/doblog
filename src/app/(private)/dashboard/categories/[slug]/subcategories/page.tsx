@@ -95,7 +95,7 @@ export default async function Page({ params, searchParams }: PageProps) {
                     <div className="flex justify-end gap-2">
                       <Button variant="ghost" size="sm" asChild>
                         <Link
-                          href={`/dashboard/posts?subcategory=${sub.slug}&category=${sub.category.slug}`}
+                          href={`/dashboard/categories/${slug}/subcategories/${sub.slug}/posts`}
                         >
                           Posts
                         </Link>
