@@ -1,8 +1,21 @@
-import type { ListPosts } from '@/actions/blog/posts/list-posts'
-import { PlusCircle, Search } from 'lucide-react'
+'use client'
+import {
+  type ListPosts,
+  archivePost,
+  moveToDraft
+} from '@/actions/dashboard/posts'
+import { MoreVertical, PlusCircle, Search } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '../ui/dropdown-menu'
 import { Input } from '../ui/input'
 import {
   Select,
@@ -26,6 +39,7 @@ interface PostsWrapperProps {
 }
 
 export function PostsWrapper({ data, category }: PostsWrapperProps) {
+  const router = useRouter()
   return (
     <section className="flex flex-col gap-4 p-4">
       <div className="flex items-center justify-between">
@@ -78,10 +92,16 @@ export function PostsWrapper({ data, category }: PostsWrapperProps) {
                 <TableCell>
                   <Badge
                     variant={
-                      post.status === 'published' ? 'default' : 'outline'
+                      post.status === 'draft'
+                        ? 'outline'
+                        : post.status === 'archived'
+                          ? 'destructive'
+                          : 'default'
                     }
                   >
-                    {post.status === 'published' ? 'Publicado' : 'Rascunho'}
+                    {post.status === 'published' && 'Publicado'}
+                    {post.status === 'draft' && 'Rascunho'}
+                    {post.status === 'archived' && 'Arquivado'}
                   </Badge>
                 </TableCell>
                 <TableCell>
@@ -90,18 +110,72 @@ export function PostsWrapper({ data, category }: PostsWrapperProps) {
                 <TableCell>{post.author.name}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link
-                        href={`/dashboard/categories/${category}/posts/edit/${post.slug}`}
-                      >
-                        Editar
-                      </Link>
-                    </Button>
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/posts/${post.slug}`} target="_blank">
-                        Visualizar
-                      </Link>
-                    </Button>
+                    {!!i && (
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link href={`/posts/${post.slug}`} target="_blank">
+                          Visualizar
+                        </Link>
+                      </Button>
+                    )}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreVertical size={16} />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                          <Link
+                            href={`/dashboard/categories/${post.subcategory.category.slug}/posts/edit/${post.id}`}
+                          >
+                            Editar
+                          </Link>
+                        </DropdownMenuItem>
+                        {post.status === 'draft' && (
+                          <DropdownMenuItem>Publicar</DropdownMenuItem>
+                        )}
+
+                        {post.status !== 'draft' && (
+                          <DropdownMenuItem
+                            onClick={async () => {
+                              toast.loading('Moving your post to draft')
+                              const res = await moveToDraft(post.id)
+
+                              toast.dismiss()
+                              if (!res.success) {
+                                toast.error(res.error)
+                                return
+                              }
+                              toast.success('Post moved to draft!')
+                              router.refresh()
+                            }}
+                          >
+                            Move to draft
+                          </DropdownMenuItem>
+                        )}
+
+                        {post.status !== 'archived' && (
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={async () => {
+                              toast.loading('Arquivando o post')
+                              const res = await archivePost(post.id)
+                              toast.dismiss()
+
+                              if (!res.success) {
+                                toast.error(res.error)
+                                return
+                              }
+
+                              toast.success('Post arquivado com sucesso.')
+                              router.refresh()
+                            }}
+                          >
+                            Arquivar
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </TableCell>
               </TableRow>
