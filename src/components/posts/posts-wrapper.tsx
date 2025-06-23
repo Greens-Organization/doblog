@@ -22,9 +22,10 @@ import {
 
 interface PostsWrapperProps {
   data: ListPosts
+  category: string
 }
 
-export function PostsWrapper({ data }: PostsWrapperProps) {
+export function PostsWrapper({ data, category }: PostsWrapperProps) {
   return (
     <section className="flex flex-col gap-4 p-4">
       <div className="flex items-center justify-between">
@@ -35,7 +36,7 @@ export function PostsWrapper({ data }: PostsWrapperProps) {
           </p>
         </div>
         <Button asChild>
-          <Link href="/dashboard/posts/new">
+          <Link href={`/dashboard/categories/${category}/posts/new`}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Nova Postagem
           </Link>
@@ -73,7 +74,7 @@ export function PostsWrapper({ data }: PostsWrapperProps) {
             {data.map((post, i) => (
               <TableRow key={String(i)}>
                 <TableCell className="font-medium">{post.title}</TableCell>
-                <TableCell>Categoria</TableCell>
+                <TableCell>{post.subcategory.category.name}</TableCell>
                 <TableCell>
                   <Badge
                     variant={
@@ -90,7 +91,9 @@ export function PostsWrapper({ data }: PostsWrapperProps) {
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/dashboard/posts/edit/${post.slug}`}>
+                      <Link
+                        href={`/dashboard/categories/${category}/posts/edit/${post.slug}`}
+                      >
                         Editar
                       </Link>
                     </Button>
