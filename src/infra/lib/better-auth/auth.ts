@@ -68,9 +68,11 @@ export const auth = betterAuth({
 		maxPasswordLength: 128,
 		sendResetPassword: async (data, request) => {
 			const blogData = await blogRepository.getBlog();
+			const url = new URL(data.url);
+			url.searchParams.set("callbackURL", `${env.BETTER_AUTH_URL}/sign-in`);
 			const html = await resetPasswordEmailRender({
 				name: data.user.name,
-				url: data.url,
+				url: url.toString(),
 				blog: blogData,
 			});
 
@@ -102,14 +104,15 @@ export const auth = betterAuth({
 				type: "transactional",
 			});
 		},
+		autoSignInAfterVerification: true,
 	},
 	// socialProviders: socialProviders[0],
 	plugins: [
 		nextCookies(),
 		organization({
-			// organizationCreation: {
-			//   disabled: true,
-			// },
+			organizationCreation: {
+				disabled: true,
+			},
 			ac,
 			roles: {
 				admin,
