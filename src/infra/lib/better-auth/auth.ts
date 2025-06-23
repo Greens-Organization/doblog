@@ -21,7 +21,6 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { organization } from "better-auth/plugins";
-import { socialProviders } from "./providers";
 
 export const auth = betterAuth({
 	baseURL: env.BETTER_AUTH_URL,
@@ -104,7 +103,7 @@ export const auth = betterAuth({
 			});
 		},
 	},
-	socialProviders: socialProviders[0],
+	// socialProviders: socialProviders[0],
 	plugins: [
 		nextCookies(),
 		organization({
