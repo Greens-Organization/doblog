@@ -23,7 +23,8 @@ export default function ResetPasswordEmail({
   url,
   blog
 }: ResetPasswordEmailProps) {
-  const previewText = `Request to reset your password, please click the button below to reset your password.`
+  const previewText =
+    'Request to reset your password, please click the button below to reset your password.'
 
   return (
     <Html>

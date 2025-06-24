@@ -12,15 +12,11 @@ import {
   user,
   verification
 } from '@/infra/db/schemas/auth'
-import { EmailQueueClient } from '@/infra/email'
-import {
-  emailVerificationRender,
-  resetPasswordEmailRender
-} from '@/infra/email/emails'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { nextCookies } from 'better-auth/next-js'
 import { organization } from 'better-auth/plugins'
+import { sendResetPassword, sendVerificationEmail } from './helpers'
 
 export const auth = betterAuth({
   baseURL: env.BETTER_AUTH_URL,
@@ -66,44 +62,11 @@ export const auth = betterAuth({
     },
     minPasswordLength: 8,
     maxPasswordLength: 128,
-    sendResetPassword: async (data, request) => {
-      const blogData = await blogRepository.getBlog()
-      const url = new URL(data.url)
-      url.searchParams.set('callbackURL', `${env.BETTER_AUTH_URL}/sign-in`)
-      const html = await resetPasswordEmailRender({
-        name: data.user.name,
-        url: url.toString(),
-        blog: blogData
-      })
-
-      const emailQueue = new EmailQueueClient()
-
-      await emailQueue.addEmailJob({
-        to: data.user.email,
-        subject: 'Reset Password',
-        body: html,
-        type: 'transactional'
-      })
-    },
+    sendResetPassword,
     requireEmailVerification: true
   },
   emailVerification: {
-    sendVerificationEmail: async (data, request) => {
-      const blogData = await blogRepository.getBlog()
-      const html = await emailVerificationRender({
-        name: data.user.name,
-        url: data.url,
-        blog: blogData
-      })
-
-      const emailQueue = new EmailQueueClient()
-      await emailQueue.addEmailJob({
-        to: data.user.email,
-        subject: 'Reset Password',
-        body: html,
-        type: 'transactional'
-      })
-    },
+    sendVerificationEmail,
     autoSignInAfterVerification: true
   },
   // socialProviders: socialProviders[0],
@@ -117,7 +80,8 @@ export const auth = betterAuth({
       roles: {
         admin,
         editor
-      }
+      },
+      sendInvitationEmail: async (data, request) => {}
     })
   ],
   user: {

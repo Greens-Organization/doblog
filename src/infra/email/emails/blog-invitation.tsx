@@ -12,18 +12,18 @@ import {
 } from '@react-email/components'
 import { pretty, render } from '@react-email/render'
 
-interface EmailVerificationProps {
+interface BlogInvitationEmailProps {
   name: string
-  url: string
+  inviteLink: string
   blog?: IBlogDTO
 }
 
-export default function EmailVerification({
+export default function BlogInvitationEmail({
   name,
-  url,
+  inviteLink,
   blog
-}: EmailVerificationProps) {
-  const previewText = `Please verify your email address by clicking the button below.`
+}: BlogInvitationEmailProps) {
+  const previewText = 'Click the link in the message to accept the invitation!'
 
   return (
     <Html>
@@ -35,13 +35,13 @@ export default function EmailVerification({
             <Section>
               <Text className="font-semibold">Hello {name}!</Text>
               <Text className="mt-4">
-                Please verify your email address by clicking the button below.
+                To accept the invitation, click on the link below
               </Text>
               <Button
                 className="box-border w-full rounded-[8px] bg-blue-600 px-[12px] py-[12px] text-center font-semibold text-white"
-                href={url}
+                href={inviteLink}
               >
-                Verify Email
+                Accept invitation
               </Button>
             </Section>
           </Container>
@@ -57,6 +57,6 @@ export default function EmailVerification({
   )
 }
 
-export const emailVerificationRender = async (data: EmailVerificationProps) => {
-  return await pretty(await render(<EmailVerification {...data} />))
+export const blogInvitationRender = async (data: BlogInvitationEmailProps) => {
+  return await pretty(await render(<BlogInvitationEmail {...data} />))
 }
