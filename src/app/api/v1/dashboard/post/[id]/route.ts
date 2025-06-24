@@ -1,9 +1,9 @@
 import {
+  archivePost,
   getPost,
-  updatePost,
-  publishPost,
   movePostToDraft,
-  archivePost
+  publishPost,
+  updatePost
 } from '@/core/blog/post/services'
 import { createApiHandler } from '@/infra/helpers/handlers/api'
 
