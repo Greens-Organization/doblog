@@ -3,6 +3,7 @@ import type { NextConfig } from 'next'
 import path from 'node:path'
 
 const nextConfig: NextConfig = {
+  devIndicators: { position: 'bottom-right' },
   experimental: {
     nodeMiddleware: true
   },

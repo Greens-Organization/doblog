@@ -153,7 +153,8 @@ export async function updatePost(
 		}
 
 		// Update the post
-		const [data] = await db
+		const data = await db.transaction(async (tx) => { 
+			const [updatedPostData] = await db
 			.update(post)
 			.set({
 				title: parsed.data.title,
@@ -163,7 +164,11 @@ export async function updatePost(
 				content: parsed.data.content,
 				subcategoryId: subcategoryData.id,
 			})
-			.returning();
+				.returning();
+			
+			return updatedPostData
+		})
+
 
 		const { createdAt, updatedAt, ...categoryDataFiltered } = categoryData;
 

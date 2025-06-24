@@ -1,8 +1,8 @@
 import type { AppEither } from '@/core/error/app-either.protocols'
 import { isLeft, isRight } from '@/core/error/either'
 import type { BaseError } from '@/core/error/errors'
-import { normalizeHeaders } from '../../normalize-headers'
 import { serviceHandleError } from '@/core/error/handlers'
+import { normalizeHeaders } from '../../normalize-headers'
 
 export function createApiHandler<R>(
   handler: (request: Request) => Promise<AppEither<R>>
