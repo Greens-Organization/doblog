@@ -16,7 +16,11 @@ import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { nextCookies } from 'better-auth/next-js'
 import { organization } from 'better-auth/plugins'
-import { sendResetPassword, sendVerificationEmail } from './helpers'
+import {
+  sendInvitationEmail,
+  sendResetPassword,
+  sendVerificationEmail
+} from './helpers'
 
 export const auth = betterAuth({
   baseURL: env.BETTER_AUTH_URL,
@@ -81,7 +85,7 @@ export const auth = betterAuth({
         admin,
         editor
       },
-      sendInvitationEmail: async (data, request) => {}
+      sendInvitationEmail
     })
   ],
   user: {

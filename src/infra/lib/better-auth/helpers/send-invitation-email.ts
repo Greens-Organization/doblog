@@ -1,19 +1,18 @@
 import { blogRepository } from '@/core/blog/repository'
-import type { IUserDTO } from '@/core/blog/user/dto'
-import type { IMemberDTO } from '@/core/blog/user/dto/member'
 import { env } from '@/env'
-import type { DInvitation, DOrganization } from '@/infra/db/schemas/auth'
 import { EmailQueueClient } from '@/infra/email'
 import { blogInvitationRender } from '@/infra/email/emails'
+import type { User } from 'better-auth'
+import type { Invitation, Member, Organization } from 'better-auth/plugins'
 
 export const sendInvitationEmail = async (data: {
   id: string
   role: string
   email: string
-  organization: DOrganization
-  invitation: DInvitation
-  inviter: IMemberDTO & {
-    user: IUserDTO
+  organization: Organization
+  invitation: Invitation
+  inviter: Member & {
+    user: User
   }
   request?: Request
 }) => {

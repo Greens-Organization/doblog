@@ -1,12 +1,12 @@
 import { blogRepository } from '@/core/blog/repository'
-import type { IUserDTO } from '@/core/blog/user/dto'
 import { env } from '@/env'
 import { EmailQueueClient } from '@/infra/email'
 import { resetPasswordEmailRender } from '@/infra/email/emails'
+import type { User } from 'better-auth'
 
 export const sendResetPassword = async (
   data: {
-    user: IUserDTO
+    user: User
     url: string
     token: string
   },
