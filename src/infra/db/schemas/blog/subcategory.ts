@@ -9,7 +9,7 @@ export const subcategory = pgTable('subcategory', {
   name: text('name').notNull(),
   slug: text('slug').notNull().unique(),
   description: text('description'),
-  isDefault: boolean().default(false).notNull(),
+  isDefault: boolean('is_default').default(false).notNull(),
   categoryId: text('category_id')
     .notNull()
     .references(() => category.id, { onDelete: 'cascade' }),

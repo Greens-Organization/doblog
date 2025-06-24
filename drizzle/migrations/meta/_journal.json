@@ -8,6 +8,13 @@
       "when": 1750779436792,
       "tag": "0000_regular_sharon_ventura",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1750793681261,
+      "tag": "0001_square_gamma_corps",
+      "breakpoints": true
     }
   ]
 }
