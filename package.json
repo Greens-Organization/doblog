@@ -37,6 +37,8 @@
     "db:studio": "drizzle-kit studio",
     "db:check": "drizzle-kit check",
     "db:seed": "bun run ./src/infra/db/seed/seed.ts",
+    "db:init": "bun run db:generate && bun run db:migrate && bun run db:seed",
+    "db:initw": "bun run db:generate; bun run db:migrate; bun run db:seed",
     "dockerup": "docker compose up -d",
     "dockerdown": "docker compose down",
     "prepare": "husky"
