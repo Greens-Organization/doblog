@@ -1,6 +1,7 @@
 'use server'
 
 import { getSession } from '@/actions/get-session'
+import { makeRequestQuery } from '@/actions/request'
 import { failure, success } from '@/actions/response'
 import type { WithPagination } from '@/actions/types'
 import { env } from '@/env'
@@ -10,8 +11,10 @@ export async function listPosts(
 ) {
   const { header } = await getSession()
 
+  const query = makeRequestQuery(params)
+
   const res = await fetch(
-    `${env.BETTER_AUTH_URL}/api/v1/dashboard/post?${new URLSearchParams(params).toString()}`,
+    `${env.BETTER_AUTH_URL}/api/v1/dashboard/post${query}`,
     { headers: { Cookie: header } }
   )
 
@@ -25,12 +28,13 @@ interface Author {
 }
 
 export interface Post {
+  id: string
   title: string
   slug: string
   excerpt: string
   content: string
   featuredImage: string
-  status: string
+  status: 'published' | 'draft' | 'archived'
   createdAt: string
   updatedAt: string
   publishedAt: string

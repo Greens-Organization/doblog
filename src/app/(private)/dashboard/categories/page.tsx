@@ -22,7 +22,7 @@ interface PageProps {
 
 export default async function Page({ searchParams }: PageProps) {
   const { name } = await searchParams
-  const categories = await listCategories({ name: name || '' })
+  const categories = await listCategories({ name: name })
 
   if (!categories.success) {
     return <DefaultError description={categories.error} />

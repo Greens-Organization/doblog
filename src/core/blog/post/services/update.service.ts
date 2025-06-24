@@ -81,13 +81,15 @@ export async function updatePost(
       )
     }
 
-    // Check if a post with the same slug already exists
-    const existPostWithThisSlug = await db.query.post.findFirst({
-      where: eq(post.slug, parsed.data.slug)
-    })
+    if (existingPost.slug !== parsed.data.slug) {
+      // Check if a post with the same slug already exists
+      const existPostWithThisSlug = await db.query.post.findFirst({
+        where: eq(post.slug, parsed.data.slug)
+      })
 
-    if (existPostWithThisSlug) {
-      return left(new ConflictError('Post with this slug already exists'))
+      if (existPostWithThisSlug) {
+        return left(new ConflictError('Post with this slug already exists'))
+      }
     }
 
     // Check if the user has permission to create posts
@@ -160,6 +162,7 @@ export async function updatePost(
         content: parsed.data.content,
         subcategoryId: subcategoryData.id
       })
+      .where(eq(post.id, existingPost.id))
       .returning()
 
     const { createdAt, updatedAt, ...categoryDataFiltered } = categoryData

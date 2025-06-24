@@ -9,3 +9,7 @@ export type WithPagination<T> = {
   }
   data: T
 }
+
+export type SuccessData<
+  T extends (...args: any) => Promise<{ success: boolean; data?: any }>
+> = Extract<Awaited<ReturnType<T>>, { success: true }>['data']

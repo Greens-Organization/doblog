@@ -8,7 +8,7 @@ import {
   BreadcrumbSeparator
 } from '@/components/ui/breadcrumb'
 import { SidebarTrigger } from '@/components/ui/sidebar'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import React from 'react'
 
 interface Link {
@@ -42,8 +42,11 @@ export function DashNavbar({ navigation }: DashNavbarProps) {
 
 function PageNavigationItem(props: { href: string; content: string }) {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
 
-  const isActive = pathname === props.href
+  const query = searchParams.toString() ? `?${searchParams.toString()}` : ''
+
+  const isActive = `${pathname}${query}` === props.href
 
   if (isActive) {
     return (

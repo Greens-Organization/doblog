@@ -6,11 +6,12 @@ import { failure, success } from '@/actions/response'
 import type { WithPagination } from '@/actions/types'
 import { env } from '@/env'
 
-interface ListCategories extends Record<string, string> {
-  name: string
+interface ListCategories extends Partial<Record<string, string>> {
+  name?: string
+  slug?: string
 }
 
-export async function listCategories(filters: ListCategories) {
+export async function listCategories(filters?: ListCategories) {
   const { header } = await getSession()
 
   const query = makeRequestQuery(filters)

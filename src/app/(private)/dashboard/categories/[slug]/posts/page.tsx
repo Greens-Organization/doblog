@@ -1,19 +1,22 @@
-import { listPosts } from '@/actions/blog/posts/list-posts'
+import { listPosts } from '@/actions/dashboard/posts'
 import { DashNavbar } from '@/app/(private)/dashboard/components/dash-navbar'
 import { DefaultError } from '@/components/errors'
 import { PostsWrapper } from '@/components/posts/posts-wrapper'
 
 interface PageProps {
-  params: Promise<{ slug: string }>
+  params: Promise<{
+    slug: string
+  }>
 }
 
-export default async function PostsPage({ params }: PageProps) {
+export default async function Page({ params }: PageProps) {
   const { slug } = await params
+
   const res = await listPosts({ category_slug: slug })
 
   if (!res.success) return <DefaultError description={res.error} />
 
-  const { category } = res.data
+  const { data } = res.data
 
   return (
     <section>
@@ -21,13 +24,10 @@ export default async function PostsPage({ params }: PageProps) {
         navigation={[
           { label: 'Dashboard', href: '/dashboard' },
           { label: 'Categorias', href: '/dashboard/categories' },
-          {
-            label: 'Posts',
-            href: `/dashboard/categories/${category.slug}/posts`
-          }
+          { label: 'Posts', href: `/dashboard/categories/${slug}/posts` }
         ]}
       />
-      <PostsWrapper data={res.data} />
+      <PostsWrapper data={data} category={slug} />
     </section>
   )
 }
