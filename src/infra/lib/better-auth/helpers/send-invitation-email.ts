@@ -20,14 +20,13 @@ export const sendInvitationEmail = async (data: {
 
   const inviteLink = `${env.BETTER_AUTH_URL}/accept-invitation/${data.id}`
   const html = await blogInvitationRender({
-    name: data.inviter.user.name,
     inviteLink,
     blog: blogData
   })
 
   const emailQueue = new EmailQueueClient()
   await emailQueue.addEmailJob({
-    to: data.inviter.user.name,
+    to: data.invitation.email,
     subject: `Let's get started! Join for ${blogData!.name}`,
     body: html,
     type: 'transactional'

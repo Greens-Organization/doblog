@@ -13,13 +13,11 @@ import {
 import { pretty, render } from '@react-email/render'
 
 interface BlogInvitationEmailProps {
-  name: string
   inviteLink: string
   blog?: IBlogDTO
 }
 
 export default function BlogInvitationEmail({
-  name,
   inviteLink,
   blog
 }: BlogInvitationEmailProps) {
@@ -33,7 +31,7 @@ export default function BlogInvitationEmail({
           <Preview>{previewText}</Preview>
           <Container className="mx-auto my-[40px] max-w-[465px] rounded border border-[#eaeaea] border-solid p-[20px]">
             <Section>
-              <Text className="font-semibold">Hello {name}!</Text>
+              <Text className="font-semibold">Hello!</Text>
               <Text className="mt-4">
                 To accept the invitation, click on the link below
               </Text>
