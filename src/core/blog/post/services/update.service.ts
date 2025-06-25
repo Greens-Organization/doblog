@@ -82,7 +82,6 @@ export async function updatePost(
     }
 
     if (existingPost.slug !== parsed.data.slug) {
-      // Check if a post with the same slug already exists
       const existPostWithThisSlug = await db.query.post.findFirst({
         where: eq(post.slug, parsed.data.slug)
       })
@@ -152,18 +151,21 @@ export async function updatePost(
     }
 
     // Update the post
-    const [data] = await db
-      .update(post)
-      .set({
-        title: parsed.data.title,
-        slug: parsed.data.slug,
-        excerpt: parsed.data.excerpt,
-        featuredImage: parsed.data.featured_image,
-        content: parsed.data.content,
-        subcategoryId: subcategoryData.id
-      })
-      .where(eq(post.id, existingPost.id))
-      .returning()
+    const data = await db.transaction(async (tx) => {
+      const [updatedPostData] = await db
+        .update(post)
+        .set({
+          title: parsed.data.title,
+          slug: parsed.data.slug,
+          excerpt: parsed.data.excerpt,
+          featuredImage: parsed.data.featured_image,
+          content: parsed.data.content,
+          subcategoryId: subcategoryData.id
+        })
+        .returning()
+
+      return updatedPostData
+    })
 
     const { createdAt, updatedAt, ...categoryDataFiltered } = categoryData
 

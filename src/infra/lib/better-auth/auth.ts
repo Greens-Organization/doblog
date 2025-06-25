@@ -1,5 +1,6 @@
 import { ac, admin, editor } from '@/core/auth/permissions'
 import { blogRepository } from '@/core/blog/repository'
+import { env } from '@/env'
 import { makePasswordHasher } from '@/infra/cryptography/password'
 import { db } from '@/infra/db'
 import {
@@ -15,9 +16,14 @@ import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { nextCookies } from 'better-auth/next-js'
 import { organization } from 'better-auth/plugins'
-import { socialProviders } from './providers'
+import {
+  sendInvitationEmail,
+  sendResetPassword,
+  sendVerificationEmail
+} from './helpers'
 
 export const auth = betterAuth({
+  baseURL: env.BETTER_AUTH_URL,
   database: drizzleAdapter(db, {
     provider: 'pg',
     schema: {
@@ -52,26 +58,34 @@ export const auth = betterAuth({
     }
   },
   emailAndPassword: {
-    enabled: true, // TODO: Add this on env to setup if application use this or socialProviders
+    enabled: true,
+    disableSignUp: false,
     password: {
       hash: makePasswordHasher().hash,
       verify: makePasswordHasher().compare
     },
     minPasswordLength: 8,
-    maxPasswordLength: 128
+    maxPasswordLength: 128,
+    sendResetPassword,
+    requireEmailVerification: true
   },
-  socialProviders: socialProviders[0],
+  emailVerification: {
+    sendVerificationEmail,
+    autoSignInAfterVerification: true
+  },
+  // socialProviders: socialProviders[0],
   plugins: [
     nextCookies(),
     organization({
-      // organizationCreation: {
-      //   disabled: true,
-      // },
+      organizationCreation: {
+        disabled: true
+      },
       ac,
       roles: {
         admin,
         editor
-      }
+      },
+      sendInvitationEmail
     })
   ],
   user: {

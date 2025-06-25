@@ -18,12 +18,14 @@ export const env = createEnv({
     // Database
     DATABASE_URL: zod.string().min(1),
     DRIZZLE_LOGGER: booleanSchema,
-    // Github
-    GITHUB_CLIENT_ID: zod.string().optional(),
-    GITHUB_CLIENT_SECRET: zod.string().optional(),
-    // Google
-    GOOGLE_CLIENT_ID: zod.string().optional(),
-    GOOGLE_CLIENT_SECRET: zod.string().optional()
+    // Redis
+    REDIS_URL: zod.string().min(1),
+    // Email
+    SMTP_HOST: zod.string().min(1),
+    SMTP_PORT: zod.coerce.number().min(1).max(65535).default(587).optional(),
+    SMTP_USER: zod.string().min(1),
+    SMTP_PASS: zod.string().min(1),
+    SMTP_FROM: zod.string().min(1)
   },
   client: {},
   experimental__runtimeEnv: {}

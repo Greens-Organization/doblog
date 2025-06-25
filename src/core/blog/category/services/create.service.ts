@@ -52,25 +52,29 @@ export async function createCategory(
       return left(new ConflictError('Category already exists'))
     }
 
-    const [data] = await db
-      .insert(category)
-      .values({
-        name: parsed.data.name,
-        slug: parsed.data.slug,
-        description: parsed.data.description
-      })
-      .returning()
+    const data = await db.transaction(async (tx) => {
+      const [categoryData] = await tx
+        .insert(category)
+        .values({
+          name: parsed.data.name,
+          slug: parsed.data.slug,
+          description: parsed.data.description
+        })
+        .returning()
 
-    // Default Subcategory
-    const [defaultSubCategory] = await db
-      .insert(subcategory)
-      .values({
-        categoryId: data.id,
-        name: `${parsed.data.name} Default Subcategory`,
-        slug: `${parsed.data.slug}-default`,
-        isDefault: true
-      })
-      .returning()
+      // Default Subcategory
+      const [defaultSubCategory] = await tx
+        .insert(subcategory)
+        .values({
+          categoryId: data.id,
+          name: `${parsed.data.name} Default Subcategory`,
+          slug: `${parsed.data.slug}-default`,
+          isDefault: true
+        })
+        .returning()
+
+      return categoryData
+    })
 
     return right({ body: data, statusCode: 201 })
   } catch (error) {

@@ -7,11 +7,11 @@ import {
 } from '@/core/error/errors'
 import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
-import { subcategory } from '@/infra/db/schemas/blog'
+import { post, subcategory } from '@/infra/db/schemas/blog'
 import { extractAndValidatePathParams } from '@/infra/helpers/params'
 import { auth } from '@/infra/lib/better-auth/auth'
 import { zod } from '@/infra/lib/zod'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import type { ISubcategoryDTO } from '../dto'
 
 const pathParamSchema = zod.object({
@@ -72,14 +72,54 @@ export async function deleteSubcategory(
       return left(new NotFoundError('Subcategory not found'))
     }
 
-    const [{ categoryId, ...deletedSubcategory }] = await db
-      .delete(subcategory)
-      .where(eq(subcategory.id, id))
-      .returning()
+    if (existingSubcategory.isDefault) {
+      return left(new ValidationError('Cannot delete default subcategory'))
+    }
+
+    const subcategoryDefault = await db.query.subcategory.findFirst({
+      where: and(
+        eq(subcategory.isDefault, true),
+        eq(subcategory.categoryId, existingSubcategory.category.id)
+      )
+    })
+
+    if (!subcategoryDefault) {
+      return left(
+        new NotFoundError(
+          'Default subcategory not found, please set one before deleting this subcategory'
+        )
+      )
+    }
+
+    const deletedData = await db.transaction(async (tx) => {
+      const currentPosts = await db.query.post.findMany({
+        where: eq(subcategory.id, existingSubcategory.id),
+        columns: {
+          id: true
+        }
+      })
+
+      if (currentPosts.length > 0) {
+        await tx
+          .update(post)
+          .set({ subcategoryId: subcategoryDefault.id })
+          .where(eq(post.subcategoryId, existingSubcategory.id))
+      }
+
+      // Deleta a subcategoria
+      const [{ categoryId, ...deletedSubcategory }] = await tx
+        .delete(subcategory)
+        .where(eq(subcategory.id, existingSubcategory.id))
+        .returning()
+      return deletedSubcategory
+    })
 
     return right({
       message: 'Subcategory successfully deleted',
-      deleted: { ...deletedSubcategory, category: existingSubcategory.category }
+      deleted: {
+        ...deletedData,
+        category: existingSubcategory.category
+      }
     })
   } catch (error) {
     return left(serviceHandleError(error, 'deleteSubcategory'))

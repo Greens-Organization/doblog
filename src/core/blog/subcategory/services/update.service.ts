@@ -74,6 +74,10 @@ export async function updateSubcategory(
       return left(new NotFoundError('Subcategory not found'))
     }
 
+    if (existingSubcategory.isDefault) {
+      return left(new ConflictError('Cannot update a default subcategory'))
+    }
+
     const bodyData = await request.json()
 
     const parsedBody = updateCategorySchema().safeParse(bodyData)
@@ -87,17 +91,19 @@ export async function updateSubcategory(
       )
     }
 
-    const slugAlreadyUsed = await db.query.subcategory.findFirst({
-      where: and(
-        ne(subcategory.id, id),
-        eq(subcategory.slug, parsedBody.data.slug!)
-      )
-    })
+    if (parsedBody.data.slug !== existingSubcategory.slug) {
+      const slugAlreadyUsed = await db.query.subcategory.findFirst({
+        where: and(
+          ne(subcategory.id, id),
+          eq(subcategory.slug, parsedBody.data.slug!)
+        )
+      })
 
-    if (slugAlreadyUsed) {
-      return left(
-        new ConflictError('Slug already in use by another subcategory')
-      )
+      if (slugAlreadyUsed) {
+        return left(
+          new ConflictError('Slug already in use by another subcategory')
+        )
+      }
     }
 
     const updatedSubcategoryData = {
@@ -106,13 +112,20 @@ export async function updateSubcategory(
       description: parsedBody.data.description
     }
 
-    const [updatedCategory] = await db
-      .update(subcategory)
-      .set(updatedSubcategoryData)
-      .where(eq(subcategory.id, id))
-      .returning()
+    const updatedCategory = await db.transaction(async (tx) => {
+      const [data] = await db
+        .update(subcategory)
+        .set(updatedSubcategoryData)
+        .where(eq(subcategory.id, id))
+        .returning()
 
-    return right({ ...updatedCategory, category: existingSubcategory.category })
+      return data
+    })
+
+    return right({
+      ...updatedCategory,
+      category: existingSubcategory.category
+    })
   } catch (error) {
     return left(serviceHandleError(error, 'updateSubcategory'))
   }

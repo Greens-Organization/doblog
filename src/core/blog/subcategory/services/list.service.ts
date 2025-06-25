@@ -14,6 +14,13 @@ const searchParamsSchema = zod.object({
   id: zod.uuid().optional(),
   slug: zod.string().optional(),
   name: zod.string().optional(),
+  show_default_subcategories: zod
+    .stringbool({
+      truthy: ['true'],
+      falsy: ['', 'false']
+    })
+    .optional()
+    .default(false),
   category_id: zod.uuid().optional(),
   page: zod.coerce.number().min(1).optional().default(1),
   per_page: zod.coerce.number().min(1).optional().default(25)
@@ -62,6 +69,8 @@ export async function listSubcategories(
       slug: url.searchParams.get('slug') ?? undefined,
       name: url.searchParams.get('name') ?? undefined,
       categoryId: url.searchParams.get('category_id') ?? undefined,
+      show_default_subcategories:
+        url.searchParams.get('show_default_subcategories') ?? 'false',
       page: url.searchParams.get('page') ?? undefined,
       per_page: url.searchParams.get('per_page') ?? undefined
     })
@@ -79,6 +88,10 @@ export async function listSubcategories(
       conditions.push(`s.name ILIKE '%${sanitizeValue(params.name)}%'`)
     if (params.category_id)
       conditions.push(`s.category_id = '${sanitizeValue(params.category_id)}'`)
+    if (params.show_default_subcategories)
+      conditions.push(
+        `s.is_default = ${sanitizeValue(params.show_default_subcategories)}`
+      )
 
     let joinClause = 'INNER JOIN category c ON s.category_id = c.id'
     if (isEditor) {
@@ -112,6 +125,7 @@ export async function listSubcategories(
         s.description,
         s.created_at as "createdAt",
         s.updated_at as "updatedAt",
+        s.is_default as "isDefault",
         COALESCE(
           COUNT(
             CASE 

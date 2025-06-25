@@ -74,25 +74,36 @@ export async function updateCategory(
       )
     }
 
-    const slugAlreadyUsed = await db.query.category.findFirst({
-      where: and(ne(category.id, id), eq(category.slug, parsedBody.data.slug!))
-    })
+    if (parsedBody.data.slug !== existingCategory.slug) {
+      const slugAlreadyUsed = await db.query.category.findFirst({
+        where: and(
+          ne(category.id, id),
+          eq(category.slug, parsedBody.data.slug!)
+        )
+      })
 
-    if (slugAlreadyUsed) {
-      return left(new ConflictError('Slug already in use by another category'))
+      if (slugAlreadyUsed) {
+        return left(
+          new ConflictError('Slug already in use by another category')
+        )
+      }
     }
 
-    const [updatedCategory] = await db
-      .update(category)
-      .set({
-        name: parsedBody.data.name,
-        slug: parsedBody.data.slug,
-        description: parsedBody.data.description
-      })
-      .where(eq(category.id, id))
-      .returning()
+    const categoryData = await db.transaction(async (tx) => {
+      const [updatedCategory] = await tx
+        .update(category)
+        .set({
+          name: parsedBody.data.name,
+          slug: parsedBody.data.slug,
+          description: parsedBody.data.description
+        })
+        .where(eq(category.id, id))
+        .returning()
 
-    return right(updatedCategory)
+      return updatedCategory
+    })
+
+    return right(categoryData)
   } catch (error) {
     return left(serviceHandleError(error, 'updateCategory'))
   }

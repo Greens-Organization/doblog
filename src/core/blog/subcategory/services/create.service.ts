@@ -60,20 +60,24 @@ export async function createSubcategory(
       return left(new ConflictError('Subcategory already exists'))
     }
 
-    const [{ categoryId, ...data }] = await db
-      .insert(subcategory)
-      .values({
-        categoryId: categoryData.id,
-        name: parsed.data.name,
-        slug: parsed.data.slug,
-        description: parsed.data.description
-      })
-      .returning()
+    const subcategoryData = await db.transaction(async (tx) => {
+      const [{ categoryId, ...data }] = await tx
+        .insert(subcategory)
+        .values({
+          categoryId: categoryData.id,
+          name: parsed.data.name,
+          slug: parsed.data.slug,
+          description: parsed.data.description
+        })
+        .returning()
+
+      return data
+    })
 
     const { createdAt, updatedAt, ...categoryDataFiltered } = categoryData
 
     return right({
-      body: { ...data, category: categoryDataFiltered },
+      body: { ...subcategoryData, category: categoryDataFiltered },
       statusCode: 201
     })
   } catch (error) {

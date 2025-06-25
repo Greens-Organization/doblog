@@ -15,7 +15,8 @@ const statement = {
   category: ['read', 'list', 'create', 'update', 'delete'],
   subcategory: ['read', 'list', 'create', 'update', 'delete'],
   user: ['read', 'list', 'create', 'update', 'delete', 'changeCategories'],
-  profile: ['update']
+  profile: ['update'],
+  invitation: ['create']
 } as const
 
 const ac = createAccessControl(statement)
@@ -26,7 +27,8 @@ const admin = ac.newRole({
   category: [...statement.category],
   subcategory: [...statement.subcategory],
   user: [...statement.user],
-  profile: [...statement.profile]
+  profile: [...statement.profile],
+  invitation: [...statement.invitation]
 })
 
 const editor = ac.newRole({

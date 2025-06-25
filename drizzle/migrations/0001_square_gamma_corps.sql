@@ -1,0 +1,1 @@
+ALTER TABLE "subcategory" RENAME COLUMN "isDefault" TO "is_default";
