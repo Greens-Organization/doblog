@@ -55,6 +55,11 @@ export default function BlogInvitationEmail({
   )
 }
 
-export const blogInvitationRender = async (data: BlogInvitationEmailProps) => {
-  return await pretty(await render(<BlogInvitationEmail {...data} />))
+export const blogInvitationRender = async (
+  data: BlogInvitationEmailProps,
+  plainText = false
+) => {
+  return await pretty(
+    await render(<BlogInvitationEmail {...data} />, { plainText })
+  )
 }

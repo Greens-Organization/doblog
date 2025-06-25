@@ -17,12 +17,22 @@ export const sendVerificationEmail = async (
     url: data.url,
     blog: blogData
   })
+  const text = await emailVerificationRender(
+    {
+      name: data.user.name,
+      url: data.url,
+      blog: blogData
+    },
+    true
+  )
 
   const emailQueue = new EmailQueueClient()
   await emailQueue.addEmailJob({
+    sender: blogData?.name ?? 'Doblog',
     to: data.user.email,
-    subject: 'Reset Password',
-    body: html,
+    subject: 'Email Verification',
+    html,
+    text,
     type: 'transactional'
   })
 }

@@ -18,10 +18,12 @@ export class EmailSender {
 
   async send(job: EmailJob): Promise<void> {
     await this.transporter.sendMail({
+      sender: job.sender,
       from: env.SMTP_FROM,
       to: job.to,
       subject: job.subject,
-      html: job.body
+      html: job.html,
+      text: job.text
     })
   }
 }

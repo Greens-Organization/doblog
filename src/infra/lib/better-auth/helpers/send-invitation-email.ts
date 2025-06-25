@@ -23,12 +23,21 @@ export const sendInvitationEmail = async (data: {
     inviteLink,
     blog: blogData
   })
+  const text = await blogInvitationRender(
+    {
+      inviteLink,
+      blog: blogData
+    },
+    true
+  )
 
   const emailQueue = new EmailQueueClient()
   await emailQueue.addEmailJob({
+    sender: blogData?.name ?? 'Doblog',
     to: data.invitation.email,
     subject: `Let's get started! Join for ${blogData!.name}`,
-    body: html,
+    html,
+    text,
     type: 'transactional'
   })
 }

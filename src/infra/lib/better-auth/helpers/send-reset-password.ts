@@ -20,13 +20,23 @@ export const sendResetPassword = async (
     url: url.toString(),
     blog: blogData
   })
+  const text = await resetPasswordEmailRender(
+    {
+      name: data.user.name,
+      url: url.toString(),
+      blog: blogData
+    },
+    true
+  )
 
   const emailQueue = new EmailQueueClient()
 
   await emailQueue.addEmailJob({
+    sender: blogData?.name ?? 'Doblog',
     to: data.user.email,
     subject: 'Reset Password',
-    body: html,
+    html,
+    text,
     type: 'transactional'
   })
 }
