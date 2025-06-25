@@ -59,7 +59,6 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
-    disableSignUp: false,
     password: {
       hash: makePasswordHasher().hash,
       verify: makePasswordHasher().compare
@@ -67,7 +66,8 @@ export const auth = betterAuth({
     minPasswordLength: 8,
     maxPasswordLength: 128,
     sendResetPassword,
-    requireEmailVerification: true
+    requireEmailVerification: true,
+    autoSignIn: true
   },
   emailVerification: {
     sendVerificationEmail,
