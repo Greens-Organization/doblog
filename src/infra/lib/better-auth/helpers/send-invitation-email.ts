@@ -33,7 +33,7 @@ export const sendInvitationEmail = async (data: {
 
   const emailQueue = new EmailQueueClient()
   await emailQueue.addEmailJob({
-    sender: blogData?.name ?? 'Doblog',
+    fromDisplayName: blogData?.name ?? 'Doblog',
     to: data.invitation.email,
     subject: `Let's get started! Join for ${blogData!.name}`,
     html,
