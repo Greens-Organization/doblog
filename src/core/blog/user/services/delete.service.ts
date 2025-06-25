@@ -1,5 +1,5 @@
 import type { AppEither } from '@/core/error/app-either.protocols'
-import { left, right } from '@/core/error/either'
+import { isLeft, left, right } from '@/core/error/either'
 import {
   NotFoundError,
   UnauthorizedError,
@@ -9,6 +9,7 @@ import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { user, userToCategory } from '@/infra/db/schemas/auth'
 import { post } from '@/infra/db/schemas/blog'
+import { ensureAuthenticated } from '@/infra/helpers/auth'
 import { extractAndValidatePathParams } from '@/infra/helpers/params'
 import { auth } from '@/infra/lib/better-auth/auth'
 import { zod } from '@/infra/lib/zod'
@@ -41,6 +42,13 @@ export async function deleteUser(
       )
     }
 
+    const authSession = await ensureAuthenticated(request)
+    if (isLeft(authSession)) {
+      return authSession
+    }
+    const session = authSession.value
+    const currentUser = session?.user.id
+
     const blogData = await blogRepository.getBlog()
     if (!blogData) {
       return left(new NotFoundError('Blog not found'))
@@ -60,11 +68,23 @@ export async function deleteUser(
     }
     const { id } = parsedParam.data
 
+    if (currentUser === id) {
+      return left(new UnauthorizedError("you can't delete yourself"))
+    }
+
     const existingUser = await db.query.user.findFirst({
       where: eq(user.id, id)
     })
     if (!existingUser) {
       return left(new NotFoundError('User not found'))
+    }
+    if (existingUser.role === 'admin') {
+      const admins = await db.query.user.findMany({
+        where: eq(user.role, 'admin')
+      })
+      if (admins.length <= 1) {
+        return left(new ValidationError('At least one admin is required'))
+      }
     }
 
     const anonymousUser = await db.query.user.findFirst({

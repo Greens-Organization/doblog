@@ -63,7 +63,10 @@ export default function ResetPasswordEmail({
 }
 
 export const resetPasswordEmailRender = async (
-  data: ResetPasswordEmailProps
+  data: ResetPasswordEmailProps,
+  plainText = false
 ) => {
-  return await pretty(await render(<ResetPasswordEmail {...data} />))
+  return await pretty(
+    await render(<ResetPasswordEmail {...data} />, { plainText })
+  )
 }
