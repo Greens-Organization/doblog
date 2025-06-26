@@ -1,4 +1,5 @@
 import '@/styles/globals.css'
+import { getConfig } from '@/actions/blog/config'
 import RootProviders from '@/components/providers'
 import { siteConfig } from '@/config/site.config'
 import { fontHeading, fontMono, fontSans } from '@/infra/lib/fonts'
@@ -45,11 +46,13 @@ export const metadata: Metadata = {
   }
 }
 
-export default function RootLayout({
-  children
-}: Readonly<{
+interface Layout {
   children: React.ReactNode
-}>) {
+}
+
+export default function RootLayout({ children }: Layout) {
+  const config = getConfig()
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
@@ -60,7 +63,7 @@ export default function RootLayout({
           fontMono.variable
         )}
       >
-        <RootProviders>{children}</RootProviders>
+        <RootProviders configPromise={config}>{children}</RootProviders>
       </body>
     </html>
   )
