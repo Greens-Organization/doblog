@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/card'
 import { cn } from '@/infra/lib/utils'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { SignInForm, SignUpForm } from './auth-form'
 
 export default function AuthCard({
@@ -20,6 +21,9 @@ export default function AuthCard({
   description: string
   mode?: 'sign-in' | 'sign-up'
 }) {
+  const searchParams = useSearchParams()
+  const callbackURL = searchParams.get('callbackURL') || ''
+
   return (
     <Card className="max-w-md w-full rounded-none border-dashed">
       <CardHeader>
@@ -41,7 +45,7 @@ export default function AuthCard({
             <>
               Don't have an account?{' '}
               <Link
-                href="/sign-up"
+                href={`/sign-up?callbackURL=${callbackURL}`}
                 className="text-primary font-medium hover:underline"
               >
                 Sign up
@@ -51,7 +55,7 @@ export default function AuthCard({
             <>
               Already have an account?{' '}
               <Link
-                href="/sign-in"
+                href={`/sign-in?callbackURL=${callbackURL}`}
                 className="text-primary font-medium hover:underline"
               >
                 Sign in
