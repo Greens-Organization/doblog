@@ -58,6 +58,11 @@ export default function EmailVerification({
   )
 }
 
-export const emailVerificationRender = async (data: EmailVerificationProps) => {
-  return await pretty(await render(<EmailVerification {...data} />))
+export const emailVerificationRender = async (
+  data: EmailVerificationProps,
+  plainText = false
+) => {
+  return await pretty(
+    await render(<EmailVerification {...data} />, { plainText })
+  )
 }

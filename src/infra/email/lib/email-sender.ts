@@ -17,11 +17,20 @@ export class EmailSender {
   }
 
   async send(job: EmailJob): Promise<void> {
+    const from = job.fromDisplayName
+      ? { name: job.fromDisplayName, address: env.SMTP_FROM }
+      : env.SMTP_FROM
+
+    const to = job.toDisplayName
+      ? { name: job.toDisplayName, address: job.to }
+      : job.to
+
     await this.transporter.sendMail({
-      from: env.SMTP_FROM,
-      to: job.to,
+      from,
+      to,
       subject: job.subject,
-      html: job.body
+      html: job.html,
+      text: job.text
     })
   }
 }
