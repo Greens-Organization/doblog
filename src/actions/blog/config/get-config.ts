@@ -4,6 +4,14 @@ import { getSession } from '@/actions/get-session'
 import { failure, success } from '@/actions/response'
 import { env } from '@/env'
 
+interface Success {
+  name: string
+  slug: string
+  description: string
+  logo: string
+  keywords: string | null
+}
+
 export async function getConfig() {
   const { header } = await getSession()
 
@@ -12,5 +20,5 @@ export async function getConfig() {
   })
 
   if (res.status !== 200) return failure(res)
-  return success(res)
+  return success<Success>(res)
 }
