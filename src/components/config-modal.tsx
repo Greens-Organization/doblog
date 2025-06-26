@@ -1,5 +1,9 @@
 'use client'
 import { createBlog, createFirstUser } from '@/actions/dashboard/config'
+import {
+  DicebearTypes,
+  generateRandomURLAvatar
+} from '@/infra/helpers/dicebear'
 import { createBlogSchema } from '@/infra/validations/schemas/blog'
 import { createFirstUserSchema } from '@/infra/validations/schemas/user'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -33,7 +37,13 @@ function SetupBlogForm() {
       <form
         onSubmit={form.handleSubmit(async (data) => {
           toast.loading('Creating your blog config')
-          const res = await createBlog(data)
+          const res = await createBlog({
+            name: data.name,
+            description: data.description,
+            logo:
+              data.logo ||
+              generateRandomURLAvatar({ type: DicebearTypes.glass })
+          })
 
           toast.dismiss()
           if (!res.success) {
