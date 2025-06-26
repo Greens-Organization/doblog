@@ -1,2 +1,0 @@
-user default off
-user your_app on >your_strong_password ~* +@all

@@ -1,11 +1,14 @@
+import path from 'node:path'
 import { isDevelopment } from '@/env'
 import type { NextConfig } from 'next'
-import path from 'node:path'
 
 const nextConfig: NextConfig = {
   devIndicators: { position: 'bottom-right' },
   experimental: {
     nodeMiddleware: true
+  },
+  images: {
+    remotePatterns: [{ hostname: 'api.dicebear.com' }]
   },
   logging: {
     fetches: {

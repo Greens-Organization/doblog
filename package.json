@@ -95,7 +95,7 @@
     "@types/pg": "8.15.2",
     "@types/react": "19.1.4",
     "@types/react-dom": "19.1.5",
-    "drizzle-kit": "0.31.1",
+    "drizzle-kit": "0.31.3",
     "husky": "9.1.7",
     "react-email": "4.0.17",
     "tailwindcss": "4.1.6",

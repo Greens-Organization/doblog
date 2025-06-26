@@ -1,24 +1,10 @@
-import type { Metadata } from 'next'
-import { Inter, JetBrains_Mono } from 'next/font/google'
 import '@/styles/globals.css'
+import { getConfig } from '@/actions/blog/config'
 import RootProviders from '@/components/providers'
 import { siteConfig } from '@/config/site.config'
+import { fontHeading, fontMono, fontSans } from '@/infra/lib/fonts'
 import { cn } from '@/infra/lib/utils'
-
-const fontSans = Inter({
-  variable: '--font-sans',
-  subsets: ['latin']
-})
-
-const fontMono = JetBrains_Mono({
-  variable: '--font-mono',
-  subsets: ['latin']
-})
-
-const fontHeading = Inter({
-  variable: '--font-inter',
-  subsets: ['latin']
-})
+import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.origin),
@@ -60,11 +46,13 @@ export const metadata: Metadata = {
   }
 }
 
-export default function RootLayout({
-  children
-}: Readonly<{
+interface Layout {
   children: React.ReactNode
-}>) {
+}
+
+export default function RootLayout({ children }: Layout) {
+  const config = getConfig()
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body
@@ -75,7 +63,7 @@ export default function RootLayout({
           fontMono.variable
         )}
       >
-        <RootProviders>{children}</RootProviders>
+        <RootProviders configPromise={config}>{children}</RootProviders>
       </body>
     </html>
   )

@@ -5,7 +5,7 @@ export async function failure(res: Response) {
     const json = await res.json()
     message = json.error as string
   } catch {}
-  return { success: false, error: message } as const
+  return { success: false, error: message, status: res.status } as const
 }
 
 export async function success<T>(res: Response) {
