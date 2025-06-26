@@ -18,7 +18,7 @@ export const sendInvitationEmail = async (data: {
 }) => {
   const blogData = await blogRepository.getBlog()
 
-  const inviteLink = `${env.BETTER_AUTH_URL}/accept-invitation/${data.id}`
+  const inviteLink = `${env.BETTER_AUTH_URL}/invite/${data.id}`
   const html = await blogInvitationRender({
     inviteLink,
     blog: blogData

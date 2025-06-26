@@ -9,9 +9,10 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
-import { PlusCircle, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 import Link from 'next/link'
 import { DashNavbar } from '../components/dash-navbar'
+import { InviteUser } from './invite-user'
 
 export default function UsersPage() {
   const users = [
@@ -65,12 +66,7 @@ export default function UsersPage() {
               Gerencie os usuários e suas permissões.
             </p>
           </div>
-          <Button asChild>
-            <Link href="/dashboard/users/new">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Novo Usuário
-            </Link>
-          </Button>
+          <InviteUser />
         </div>
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
