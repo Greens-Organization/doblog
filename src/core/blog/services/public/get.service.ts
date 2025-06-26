@@ -3,6 +3,8 @@ import { left, right } from '@/core/error/either'
 import { NotFoundError } from '@/core/error/errors'
 import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
+import { user } from '@/infra/db/schemas/auth'
+import { ne } from 'drizzle-orm'
 import type { IBlogDTO } from '../../dto'
 
 export async function getBlogPublic(
@@ -21,7 +23,10 @@ export async function getBlogPublic(
       )
     }
 
-    const isExistUser = await db.query.user.findFirst()
+    const isExistUser = await db.query.user.findFirst({
+      where: ne(user.email, 'anonymous')
+    })
+
     if (!isExistUser || isExistUser.role !== 'admin') {
       return left(
         new NotFoundError('First user not created yet', { statusCode: 412 })
