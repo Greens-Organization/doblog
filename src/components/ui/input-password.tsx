@@ -23,7 +23,7 @@ function InputPassword({ className, ...props }: React.ComponentProps<'input'>) {
         size="icon"
         variant="ghost"
         type="button"
-        className="rounded-l-none absolute right-0 top-0 text-muted-foreground"
+        className="rounded-l-none absolute right-0 top-0 text-muted-foreground h-full"
         onClick={() => setOpen((b) => !b)}
       >
         <EyeClosed
