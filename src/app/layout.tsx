@@ -1,24 +1,9 @@
-import type { Metadata } from 'next'
-import { Inter, JetBrains_Mono } from 'next/font/google'
 import '@/styles/globals.css'
 import RootProviders from '@/components/providers'
 import { siteConfig } from '@/config/site.config'
+import { fontHeading, fontMono, fontSans } from '@/infra/lib/fonts'
 import { cn } from '@/infra/lib/utils'
-
-const fontSans = Inter({
-  variable: '--font-sans',
-  subsets: ['latin']
-})
-
-const fontMono = JetBrains_Mono({
-  variable: '--font-mono',
-  subsets: ['latin']
-})
-
-const fontHeading = Inter({
-  variable: '--font-inter',
-  subsets: ['latin']
-})
+import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.origin),
