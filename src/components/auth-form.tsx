@@ -1,6 +1,6 @@
 'use client'
 import { authClient } from '@/infra/lib/better-auth/auth-client'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from './ui/button'
@@ -8,7 +8,10 @@ import { Input } from './ui/input'
 
 export function SignInForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isLoading, setIsLoading] = useState(false)
+
+  const callbackURL = searchParams.get('callbackURL') || '/'
 
   return (
     <form
@@ -23,7 +26,8 @@ export function SignInForm() {
 
         const { error } = await authClient.signIn.email({
           email: email as string,
-          password: password as string
+          password: password as string,
+          callbackURL: callbackURL
         })
 
         setIsLoading(false)
@@ -31,7 +35,7 @@ export function SignInForm() {
           toast.error(error.message)
           return
         }
-        router.push('/')
+        router.push(callbackURL)
       }}
     >
       <Input placeholder="Email" name="email" type="email" required />
@@ -49,7 +53,11 @@ export function SignInForm() {
 
 export function SignUpForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isLoading, setIsLoading] = useState(false)
+
+  const callbackURL = searchParams.get('callbackURL') || '/sign-in'
+
   return (
     <form
       className="space-y-3"
@@ -65,7 +73,8 @@ export function SignUpForm() {
         const { error } = await authClient.signUp.email({
           email: email as string,
           name: name as string,
-          password: password as string
+          password: password as string,
+          callbackURL: callbackURL
         })
 
         setIsLoading(false)
@@ -73,7 +82,7 @@ export function SignUpForm() {
           toast.error(error.message)
           return
         }
-        router.push('/sign-in')
+        router.push(callbackURL)
       }}
     >
       <Input placeholder="Name" name="name" required />
