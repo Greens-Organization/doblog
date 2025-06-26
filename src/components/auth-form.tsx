@@ -82,7 +82,7 @@ export function SignUpForm() {
           toast.error(error.message)
           return
         }
-        router.push(callbackURL)
+        router.push(`/sign-up/confirm-account?callbackURL=${callbackURL}`)
       }}
     >
       <Input placeholder="Name" name="name" required />
