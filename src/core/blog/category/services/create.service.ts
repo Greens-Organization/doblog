@@ -66,7 +66,7 @@ export async function createCategory(
       const [defaultSubCategory] = await tx
         .insert(subcategory)
         .values({
-          categoryId: data.id,
+          categoryId: categoryData.id,
           name: `${parsed.data.name} Default Subcategory`,
           slug: `${parsed.data.slug}-default`,
           isDefault: true
