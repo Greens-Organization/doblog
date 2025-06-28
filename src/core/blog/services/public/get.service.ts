@@ -4,7 +4,7 @@ import { NotFoundError } from '@/core/error/errors'
 import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { user } from '@/infra/db/schemas/auth'
-import { ne } from 'drizzle-orm'
+import { and, eq, ne } from 'drizzle-orm'
 import type { IBlogDTO } from '../../dto'
 
 export async function getBlogPublic(
@@ -24,7 +24,7 @@ export async function getBlogPublic(
     }
 
     const isExistUser = await db.query.user.findFirst({
-      where: ne(user.email, 'anonymous')
+      where: and(ne(user.email, 'anonymous'), eq(user.role, 'admin'))
     })
 
     if (!isExistUser || isExistUser.role !== 'admin') {
