@@ -3,23 +3,14 @@
 import { deleteUser } from '@/actions/dashboard/user'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
 import { TableCell, TableRow } from '@/components/ui/table'
 import type { IUserDTO } from '@/core/blog/user/dto'
-import { MoreVertical } from 'lucide-react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
 import { toast } from 'sonner'
-import { UpdateUser } from './update-user'
 
 export function UsersTableRow({ user }: { user: IUserDTO }) {
   const router = useRouter()
-  const [open, setOpen] = useState(false)
 
   return (
     <TableRow key={user.id}>
@@ -34,37 +25,27 @@ export function UsersTableRow({ user }: { user: IUserDTO }) {
       <TableCell>{user.totalPostDraft}</TableCell>
       <TableCell className="text-right">
         <div className="flex justify-end gap-2">
-          <DropdownMenu open={open} onOpenChange={setOpen}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
-                <MoreVertical size={16} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <UpdateUser user={user}>
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                  Editar
-                </DropdownMenuItem>
-              </UpdateUser>
-              <DropdownMenuItem
-                variant="destructive"
-                onClick={async () => {
-                  toast.loading('Deleting user...')
-                  const res = await deleteUser(user.id)
-                  toast.dismiss()
+          <Button size="sm" variant="secondary">
+            <Link href={`/dashboard/users/edit/${user.id}`}>Edit</Link>
+          </Button>
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={async () => {
+              toast.loading('Deleting user...')
+              const res = await deleteUser(user.id)
+              toast.dismiss()
 
-                  if (!res.success) {
-                    toast.error(res.error)
-                    return
-                  }
-                  toast.success('User deleted.')
-                  router.refresh()
-                }}
-              >
-                Deletar
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              if (!res.success) {
+                toast.error(res.error)
+                return
+              }
+              toast.success('User deleted.')
+              router.refresh()
+            }}
+          >
+            Delete
+          </Button>
         </div>
       </TableCell>
     </TableRow>
