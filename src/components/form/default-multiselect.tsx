@@ -40,6 +40,7 @@ export function DefaultMultiSelector({
             <MultipleSelector
               commandProps={{ label }}
               value={field.value}
+              onChange={field.onChange}
               defaultOptions={values}
               placeholder={placeholder}
               hidePlaceholderWhenSelected
