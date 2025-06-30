@@ -45,7 +45,11 @@ export default async function Page({ params }: PageProps) {
               </p>
             </hgroup>
             {categories.success ? (
-              <PermissionForm categories={categories.data} />
+              <PermissionForm
+                userCategories={user.data.categories}
+                categories={categories.data}
+                userId={user.data.id}
+              />
             ) : (
               <p>Error: {categories.error}</p>
             )}
