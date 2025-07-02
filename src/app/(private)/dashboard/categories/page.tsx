@@ -84,13 +84,6 @@ export default async function Page({ searchParams }: PageProps) {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link
-                          href={`/dashboard/categories/${category.slug}/posts`}
-                        >
-                          Posts
-                        </Link>
-                      </Button>
                       <UpdateCategorySheet
                         id={category.id}
                         description={category.description || ''}
