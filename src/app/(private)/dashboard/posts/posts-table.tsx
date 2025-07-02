@@ -5,6 +5,7 @@ import {
   moveToDraft,
   publishPost
 } from '@/actions/dashboard/posts'
+import { SearchFilter, SelectFilter } from '@/components/filters'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -13,14 +14,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
 import {
   Table,
   TableBody,
@@ -30,16 +23,16 @@ import {
   TableRow
 } from '@/components/ui/table'
 import { format } from 'date-fns'
-import { MoreVertical, PlusCircle, Search } from 'lucide-react'
+import { MoreVertical, PlusCircle } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
-interface PostsWrapperProps {
+interface PostsTableProps {
   data: ListPosts
 }
 
-export function PostsWrapper({ data }: PostsWrapperProps) {
+export function PostsTable({ data }: PostsTableProps) {
   const router = useRouter()
   return (
     <section className="flex flex-col gap-4 p-4">
@@ -58,20 +51,16 @@ export function PostsWrapper({ data }: PostsWrapperProps) {
         </Button>
       </div>
       <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder="Pesquisar postagens..." className="pl-10" />
-        </div>
-        <Select defaultValue="all">
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos Status</SelectItem>
-            <SelectItem value="published">Publicado</SelectItem>
-            <SelectItem value="draft">Rascunho</SelectItem>
-          </SelectContent>
-        </Select>
+        <SearchFilter placeholder="Pesquisar postagens..." name="name" />
+        <SelectFilter
+          name="status"
+          defaultValue="all"
+          values={[
+            { key: 'Todos Status', value: 'all' },
+            { key: 'Publicado', value: 'published' },
+            { key: 'Rascunho', value: 'draft' }
+          ]}
+        />
       </div>
       <div className="rounded-md border">
         <Table>

@@ -27,8 +27,16 @@ export function SearchFilter({
 
   useEffect(() => {
     if (urlQuery === debouncedValue) return
-    router.replace(`?${name}=${debouncedValue}`)
-  }, [debouncedValue, urlQuery, router, name])
+    const newParams = new URLSearchParams(searchParams)
+
+    if (debouncedValue) {
+      newParams.set(name, debouncedValue)
+    } else {
+      newParams.delete(name)
+    }
+
+    router.replace(`?${newParams.toString()}`)
+  }, [debouncedValue, urlQuery, router, name, searchParams])
 
   return (
     <div className="relative flex-1">

@@ -1,10 +1,15 @@
 import { listPosts } from '@/actions/dashboard/posts'
 import { DashNavbar } from '@/app/(private)/dashboard/components/dash-navbar'
 import { DefaultError } from '@/components/errors'
-import { PostsWrapper } from './posts-table'
+import { PostsTable } from './posts-table'
 
-export default async function Page() {
-  const res = await listPosts({})
+interface PageProps {
+  searchParams: Promise<{ status?: string; name?: string }>
+}
+
+export default async function Page({ searchParams }: PageProps) {
+  const search = await searchParams
+  const res = await listPosts({ name: search.name, status: search.status })
 
   if (!res.success) return <DefaultError description={res.error} />
 
@@ -15,10 +20,10 @@ export default async function Page() {
       <DashNavbar
         navigation={[
           { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Categorias', href: '/dashboard/categories' }
+          { label: 'Posts', href: '/dashboard/posts' }
         ]}
       />
-      <PostsWrapper data={data} />
+      <PostsTable data={data} />
     </section>
   )
 }
