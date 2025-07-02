@@ -7,7 +7,7 @@ import type { WithPagination } from '@/actions/types'
 import { env } from '@/env'
 
 export async function listPosts(
-  params: Partial<{ category_slug: string; subcategory_slug: string }>
+  params: Partial<{ name: string; status: string }>
 ) {
   const { header } = await getSession()
 
