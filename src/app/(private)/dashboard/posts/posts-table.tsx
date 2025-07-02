@@ -2,28 +2,25 @@
 import {
   type ListPosts,
   archivePost,
-  moveToDraft
+  moveToDraft,
+  publishPost
 } from '@/actions/dashboard/posts'
-import { MoreVertical, PlusCircle, Search } from 'lucide-react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import { Badge } from '../ui/badge'
-import { Button } from '../ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger
-} from '../ui/dropdown-menu'
-import { Input } from '../ui/input'
+} from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue
-} from '../ui/select'
+} from '@/components/ui/select'
 import {
   Table,
   TableBody,
@@ -31,14 +28,18 @@ import {
   TableHead,
   TableHeader,
   TableRow
-} from '../ui/table'
+} from '@/components/ui/table'
+import { format } from 'date-fns'
+import { MoreVertical, PlusCircle, Search } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 interface PostsWrapperProps {
   data: ListPosts
-  category: string
 }
 
-export function PostsWrapper({ data, category }: PostsWrapperProps) {
+export function PostsWrapper({ data }: PostsWrapperProps) {
   const router = useRouter()
   return (
     <section className="flex flex-col gap-4 p-4">
@@ -50,7 +51,7 @@ export function PostsWrapper({ data, category }: PostsWrapperProps) {
           </p>
         </div>
         <Button asChild>
-          <Link href={`/dashboard/categories/${category}/posts/new`}>
+          <Link href="/dashboard/posts/new">
             <PlusCircle className="mr-2 h-4 w-4" />
             Nova Postagem
           </Link>
@@ -104,13 +105,11 @@ export function PostsWrapper({ data, category }: PostsWrapperProps) {
                     {post.status === 'archived' && 'Arquivado'}
                   </Badge>
                 </TableCell>
-                <TableCell>
-                  {new Date(post.createdAt).toLocaleDateString()}
-                </TableCell>
+                <TableCell>{format(post.createdAt, 'dd/MM/yyyy')}</TableCell>
                 <TableCell>{post.author.name}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    {!!i && (
+                    {post.status === 'published' && (
                       <Button variant="ghost" size="sm" asChild>
                         <Link href={`/posts/${post.slug}`} target="_blank">
                           Visualizar
@@ -125,14 +124,28 @@ export function PostsWrapper({ data, category }: PostsWrapperProps) {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link
-                            href={`/dashboard/categories/${post.subcategory.category.slug}/posts/edit/${post.id}`}
-                          >
+                          <Link href={`/dashboard/posts/edit/${post.id}`}>
                             Editar
                           </Link>
                         </DropdownMenuItem>
                         {post.status === 'draft' && (
-                          <DropdownMenuItem>Publicar</DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={async () => {
+                              toast.loading('Publicando seu post!')
+                              const res = await publishPost(post.id)
+
+                              toast.dismiss()
+                              if (!res.success) {
+                                toast.error(res.error)
+                                return
+                              }
+
+                              toast.success('Post publicado!')
+                              router.refresh()
+                            }}
+                          >
+                            Publicar
+                          </DropdownMenuItem>
                         )}
 
                         {post.status !== 'draft' && (

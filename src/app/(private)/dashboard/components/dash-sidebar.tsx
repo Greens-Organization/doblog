@@ -1,4 +1,5 @@
-import { FolderTree, Home, LayoutDashboard, Users } from 'lucide-react'
+'use client'
+import { FileText, FolderTree, Home, Users } from 'lucide-react'
 
 import {
   Sidebar,
@@ -11,38 +12,45 @@ import {
   SidebarMenuButton,
   SidebarMenuItem
 } from '@/components/ui/sidebar'
+import { useSession } from '@/infra/lib/better-auth/auth-client'
 import { NavUser } from './nav-user'
 
-// Menu items.
-const items = [
+const editorItems = [
   {
     title: 'Home',
     url: '/',
     icon: Home
   },
   {
-    title: 'Dashboard',
-    url: '/dashboard',
-    icon: LayoutDashboard
-  },
+    title: 'Posts',
+    url: '/dashboard/posts',
+    icon: FileText
+  }
+]
+
+const adminItems = [
+  ...editorItems,
   {
-    title: 'Categorias',
+    title: 'Categories',
     url: '/dashboard/categories',
     icon: FolderTree
   },
   {
-    title: 'Usuários',
+    title: 'Users',
     url: '/dashboard/users',
     icon: Users
   }
-  // {
-  //   title: 'Configurações',
-  //   url: '#',
-  //   icon: Settings
-  // }
 ]
 
 export function DashSidebar() {
+  const { data, isPending } = useSession()
+
+  const items = isPending
+    ? []
+    : data?.user.role === 'admin'
+      ? adminItems
+      : editorItems
+
   return (
     <Sidebar>
       <SidebarContent>

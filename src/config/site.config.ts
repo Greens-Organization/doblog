@@ -1,30 +1,29 @@
+import { env } from '@/env'
 import type { SiteConfig } from '@/types'
 
 export const siteConfig: SiteConfig = {
-  name: 'Titan',
-  title:
-    'Titan - Powerful Next.js 15 Template with Better-Auth, Drizzle ORM, PostgreSQL, and Shadcn UI',
+  name: 'Doblog',
+  title: 'Doblog - Self-Hosted Blog for Organizations',
   description:
-    'Modern Next.js 15 stack with Better-Auth, Drizzle ORM, PostgreSQL, Shadcn UI, and Tailwind v4 for fast, secure web app development.',
-  origin: 'https://titan.rdsx.dev',
+    'A self-hosting blog platform for enterprises and organizations, designed to streamline the creation, management, and sharing of institutional content securely and with full customization.',
+  origin: env.BETTER_AUTH_URL,
   keywords: [
-    'Next.js 15',
-    'Authentication',
-    'Drizzle ORM',
-    'PostgreSQL',
-    'Tailwind CSS',
-    'Tailwind CSS V4',
-    'Shadcn UI',
-    'TypeScript',
-    'Full-Stack Template'
+    'Self-hosting blog',
+    'Enterprise blog platform',
+    'Institutional content management',
+    'Organizational communication tool',
+    'Corporate blog solution',
+    'Secure content sharing',
+    'Greens Group',
+    'Doblog'
   ],
-  og: 'https://titan.rdsx.dev/og.png',
+  og: 'https://',
   creator: {
-    name: 'rds_agi',
-    url: 'https://rdsx.dev'
+    name: 'Greens Group',
+    url: 'https://grngroup.net'
   },
   socials: {
-    github: 'https://github.com/rudrodip/titan',
-    x: 'https://x.com/rds_agi'
+    github: 'https://github.com/Greens-Organization/doblog',
+    x: ''
   }
 }

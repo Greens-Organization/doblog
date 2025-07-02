@@ -31,12 +31,10 @@ export function UpdatePostForm({ categories, post }: UpdatePostFormProps) {
 
   const { data: listCategories } = categories
 
-  const category = listCategories.at(0)
-
   const form = useForm({
     resolver: zodResolver(createPostSchema()),
     defaultValues: {
-      category_slug: category?.slug || '',
+      category_slug: post.subcategory.category.slug,
       content: post.content,
       excerpt: post.excerpt,
       slug: post.slug,
@@ -46,7 +44,10 @@ export function UpdatePostForm({ categories, post }: UpdatePostFormProps) {
     }
   })
 
-  const subcategories = category?.subcategory
+  const category = form.watch('category_slug')
+
+  const subcategories =
+    listCategories.find((c) => c.slug === category)?.subcategory || []
 
   return (
     <Form {...form}>
@@ -133,21 +134,20 @@ export function UpdatePostForm({ categories, post }: UpdatePostFormProps) {
               name="category_slug"
               label="Categoria Principal"
               placeholder="Selecione a categoria"
-              disabled={true}
-              values={
-                category ? [{ label: category.name, value: category.slug }] : []
-              }
+              values={listCategories.map((c) => ({
+                label: c.name,
+                value: c.slug
+              }))}
             />
             <DefaultSelectField
               name="subcategory_slug"
               label="Subcategoria"
               placeholder="Selecione a subcategoria"
-              disabled={!subcategories?.length}
-              values={
-                subcategories
-                  ? subcategories.map((s) => ({ label: s.name, value: s.slug }))
-                  : []
-              }
+              disabled={!category}
+              values={subcategories.map((s) => ({
+                label: s.name,
+                value: s.slug
+              }))}
             />
             <DefaultField
               name="featured_image"

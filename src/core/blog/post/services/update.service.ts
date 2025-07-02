@@ -162,6 +162,7 @@ export async function updatePost(
           content: parsed.data.content,
           subcategoryId: subcategoryData.id
         })
+        .where(eq(post.id, existingPost.id))
         .returning()
 
       return updatedPostData

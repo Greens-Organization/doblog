@@ -22,7 +22,7 @@ interface CreatePostFormProps {
   categories: SuccessData<typeof listCategories>
 }
 
-export default function CreatePostForm({ categories }: CreatePostFormProps) {
+export function CreatePostForm({ categories }: CreatePostFormProps) {
   const action = useRef<'CREATE' | 'CREATE-AND-UPDATE'>('CREATE')
   const form = useForm({
     resolver: zodResolver(createPostSchema())
@@ -30,9 +30,10 @@ export default function CreatePostForm({ categories }: CreatePostFormProps) {
 
   const { data: listCategories } = categories
 
-  const category = listCategories.at(0)
+  const category = form.watch('category_slug')
 
-  const subcategories = category?.subcategory
+  const subcategories =
+    listCategories.find((c) => c.slug === category)?.subcategory || []
 
   return (
     <Form {...form}>
@@ -116,22 +117,20 @@ export default function CreatePostForm({ categories }: CreatePostFormProps) {
               name="category_slug"
               label="Categoria Principal"
               placeholder="Selecione a categoria"
-              disabled={true}
-              defaultValue={category?.slug}
-              values={
-                category ? [{ label: category.name, value: category.slug }] : []
-              }
+              values={listCategories.map((c) => ({
+                label: c.name,
+                value: c.slug
+              }))}
             />
             <DefaultSelectField
               name="subcategory_slug"
               label="Subcategoria"
               placeholder="Selecione a subcategoria"
-              disabled={!subcategories?.length}
-              values={
-                subcategories
-                  ? subcategories.map((s) => ({ label: s.name, value: s.slug }))
-                  : []
-              }
+              disabled={!category}
+              values={subcategories.map((s) => ({
+                label: s.name,
+                value: s.slug
+              }))}
             />
             <DefaultField
               name="featured_image"
