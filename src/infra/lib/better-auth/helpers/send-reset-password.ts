@@ -14,7 +14,10 @@ export const sendResetPassword = async (
 ) => {
   const blogData = await blogRepository.getBlog()
   const url = new URL(data.url)
-  url.searchParams.set('callbackURL', `${env.BETTER_AUTH_URL}/sign-in`)
+  url.searchParams.set(
+    'callbackURL',
+    `${env.BETTER_AUTH_URL}/reset-password/${data.token}`
+  )
   const html = await resetPasswordEmailRender({
     name: data.user.name,
     url: url.toString(),
