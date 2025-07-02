@@ -3,7 +3,6 @@ import { DashNavbar } from '@/app/(private)/dashboard/components/dash-navbar'
 import { DefaultError } from '@/components/errors'
 import { SearchFilter } from '@/components/filters'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import {
   Table,
   TableBody,
@@ -12,7 +11,6 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
-import Link from 'next/link'
 import { NewSubCategorySheet } from './components/new-sub-category-sheet'
 import { UpdateSubCategory } from './components/update-sub-category-sheet'
 
@@ -93,13 +91,6 @@ export default async function Page({ params, searchParams }: PageProps) {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link
-                          href={`/dashboard/categories/${slug}/subcategories/${sub.slug}/posts`}
-                        >
-                          Posts
-                        </Link>
-                      </Button>
                       <UpdateSubCategory
                         id={sub.id}
                         description={sub.description || ''}
