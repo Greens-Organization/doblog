@@ -39,8 +39,13 @@ export default function AuthCard({
           </div>
         </div>
       </CardContent>
-      <CardFooter className="flex justify-center border-t border-dashed pt-4">
-        <p className="text-sm text-muted-foreground">
+      <CardFooter
+        className={cn(
+          'flex border-t border-dashed pt-4 text-sm text-muted-foreground',
+          mode === 'sign-up' ? 'justify-center' : 'justify-between'
+        )}
+      >
+        <p>
           {mode === 'sign-in' ? (
             <>
               Don't have an account?{' '}
@@ -63,6 +68,14 @@ export default function AuthCard({
             </>
           )}
         </p>
+        {mode === 'sign-in' && (
+          <Link
+            href="/forgot-password"
+            className="text-primary font-medium hover:underline"
+          >
+            Forgot password
+          </Link>
+        )}
       </CardFooter>
     </Card>
   )
