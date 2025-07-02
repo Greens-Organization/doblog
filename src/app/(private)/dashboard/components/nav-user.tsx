@@ -98,7 +98,7 @@ export function NavUser() {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem asChild>
-                <Link href="/profile">
+                <Link href="/dashboard/account">
                   <BadgeCheck />
                   Account
                 </Link>
