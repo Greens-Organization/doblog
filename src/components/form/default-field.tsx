@@ -17,6 +17,7 @@ interface DefaultFieldProps {
   description: string
   placeholder: string
   label: string
+  disabled: boolean
 }
 
 export function DefaultField({
@@ -25,13 +26,15 @@ export function DefaultField({
   description = '',
   label = '',
   name = '',
-  placeholder = ''
+  placeholder = '',
+  disabled = false
 }: Partial<DefaultFieldProps>) {
   const form = useFormContext()
   return (
     <FormField
       defaultValue={defaultValue}
       control={form.control}
+      disabled={disabled}
       name={name}
       render={({ field }) => (
         <FormItem className="space-y-1">
