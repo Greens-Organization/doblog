@@ -1,6 +1,6 @@
 import { listUsers } from '@/actions/dashboard/user'
 import { DefaultError } from '@/components/errors'
-import { Input } from '@/components/ui/input'
+import { SearchFilter } from '@/components/filters'
 import {
   Table,
   TableBody,
@@ -8,13 +8,17 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
-import { Search } from 'lucide-react'
 import { DashNavbar } from '../components/dash-navbar'
 import { InviteUser } from './invite-user'
 import { UsersTableRow } from './users-table-row'
 
-export default async function UsersPage() {
-  const usersRes = await listUsers()
+interface PageProps {
+  searchParams: Promise<{ name?: string }>
+}
+
+export default async function Page({ searchParams }: PageProps) {
+  const search = await searchParams
+  const usersRes = await listUsers({ name: search.name })
 
   if (!usersRes.success) {
     return (
@@ -43,10 +47,7 @@ export default async function UsersPage() {
           <InviteUser />
         </div>
         <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Pesquisar usuários..." className="pl-10" />
-          </div>
+          <SearchFilter name="name" placeholder="Pesquisar usuários..." />
         </div>
         <div className="rounded-md border">
           <Table>
