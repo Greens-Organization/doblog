@@ -13,7 +13,7 @@ export const env = createEnv({
       .default('development'),
     DEBUG: booleanSchema,
     // BetterAuth
-    BETTER_AUTH_URL: zod.string().min(1).optional(),
+    BETTER_AUTH_URL: zod.string().min(1),
     BETTER_AUTH_SECRET: zod.string().min(1).optional(),
     // Database
     DATABASE_URL: zod.string().min(1),
