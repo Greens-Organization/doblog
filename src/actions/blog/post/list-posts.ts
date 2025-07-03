@@ -1,6 +1,5 @@
 'use server'
-
-import { getSession } from '@/actions/get-session'
+import { makeRequestQuery } from '@/actions/request'
 import { failure, success } from '@/actions/response'
 import type { WithPagination } from '@/actions/types'
 import { env } from '@/env'
@@ -8,12 +7,11 @@ import { env } from '@/env'
 export async function listPosts(
   params: Partial<{ category_slug: string; subcategory_slug: string }>
 ) {
-  const { header } = await getSession()
+  const query = makeRequestQuery(params)
 
-  const res = await fetch(
-    `${env.BETTER_AUTH_URL}/api/v1/dashboard/post?${new URLSearchParams(params).toString()}`,
-    { headers: { Cookie: header } }
-  )
+  const res = await fetch(`${env.BETTER_AUTH_URL}/api/v1/blog/post${query}`, {
+    next: { revalidate: 5 * 60, tags: ['list-posts'] }
+  })
 
   if (res.status !== 200) return failure(res)
   return success<WithPagination<ListPosts>>(res)
@@ -23,7 +21,6 @@ interface Author {
   name: string
   image: string | null
 }
-
 export interface Post {
   title: string
   slug: string
