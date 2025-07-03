@@ -5,7 +5,7 @@ import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { category } from '@/infra/db/schemas/blog'
 import { zod } from '@/infra/lib/zod'
-import { and, eq } from 'drizzle-orm'
+import { and, ilike } from 'drizzle-orm'
 
 const searchParamsSchema = zod.object({
   slug: zod.string().optional(),
@@ -25,11 +25,11 @@ export async function listCategoriesPublic(
     const filters = []
 
     if (params.slug) {
-      filters.push(eq(category.slug, params.slug))
+      filters.push(ilike(category.slug, params.slug))
     }
 
     if (params.name) {
-      filters.push(eq(category.name, params.name))
+      filters.push(ilike(category.name, `%${params.name}%`))
     }
 
     const whereClause = filters.length > 0 ? and(...filters) : undefined
