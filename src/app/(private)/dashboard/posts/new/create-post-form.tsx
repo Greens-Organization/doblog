@@ -13,7 +13,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 
-import type { listCategories } from '@/actions/blog/category'
+import type { listCategories } from '@/actions/dashboard/category'
 import type { SuccessData } from '@/actions/types'
 import { createPostSchema } from '@/infra/validations/schemas/post'
 import { useRef } from 'react'

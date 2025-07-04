@@ -1,4 +1,4 @@
-import { listCategories } from '@/actions/blog/category'
+import { listCategories } from '@/actions/dashboard/category'
 import { getPost } from '@/actions/dashboard/posts'
 import { DashNavbar } from '@/app/(private)/dashboard/components/dash-navbar'
 import { redirect } from 'next/navigation'

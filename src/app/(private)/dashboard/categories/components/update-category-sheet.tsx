@@ -1,5 +1,5 @@
 'use client'
-import { deleteCategory, updateCategory } from '@/actions/blog/category'
+import { deleteCategory, updateCategory } from '@/actions/dashboard/category'
 import { DeleteButton } from '@/components/buttons'
 import { Button } from '@/components/ui/button'
 import {

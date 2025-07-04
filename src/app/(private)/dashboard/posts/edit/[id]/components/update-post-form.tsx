@@ -14,7 +14,7 @@ import { Save } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
-import type { listCategories } from '@/actions/blog/category'
+import type { listCategories } from '@/actions/dashboard/category'
 import type { SuccessData } from '@/actions/types'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
