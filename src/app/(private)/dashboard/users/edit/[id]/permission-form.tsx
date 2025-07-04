@@ -1,5 +1,5 @@
 'use client'
-import type { listCategories } from '@/actions/blog/category'
+import type { listCategories } from '@/actions/dashboard/category'
 import { updateUserCategoriesPermissions } from '@/actions/dashboard/user'
 import type { SuccessData } from '@/actions/types'
 import { DefaultMultiSelector } from '@/components/form/default-multiselect'

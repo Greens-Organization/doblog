@@ -1,4 +1,4 @@
-import { listCategories } from '@/actions/blog/category'
+import { listCategories } from '@/actions/dashboard/category'
 import { DefaultError } from '@/components/errors'
 import { SearchFilter } from '@/components/filters'
 import { Badge } from '@/components/ui/badge'
