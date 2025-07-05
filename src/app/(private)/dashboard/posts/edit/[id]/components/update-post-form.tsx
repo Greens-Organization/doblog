@@ -1,5 +1,4 @@
 'use client'
-
 import {
   type getPost,
   publishPost,
@@ -11,11 +10,17 @@ import { DefaultMarkdownEditor } from '@/components/form/default-markdown-editor
 import { DefaultSelectField } from '@/components/form/default-select-field'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Save } from 'lucide-react'
+import Image from 'next/image'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
 import type { listCategories } from '@/actions/dashboard/category'
+import {
+  createSignedURL,
+  uploadThumbnail
+} from '@/actions/dashboard/posts/thumbnail'
 import type { SuccessData } from '@/actions/types'
+import { DefaultImageField } from '@/components/form/default-image-field'
 import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 import { createPostSchema } from '@/infra/validations/schemas/post'
@@ -55,6 +60,40 @@ export function UpdatePostForm({ categories, post }: UpdatePostFormProps) {
         className="flex flex-col gap-4 p-4"
         onSubmit={form.handleSubmit(async (data) => {
           toast.loading('Creating posts')
+          console.log(post.featuredImage)
+          if (post.featuredImage !== data.featured_image) {
+            // Get Id from url [url]/:id.:image-type
+            const file = document.querySelector("input[type='file']")
+
+            // @ts-ignore
+            const imageRaw = file?.files?.[0] as File
+            const idImage = post.featuredImage?.split(/[.\/]/).at(-2) as string
+            const fileType = data.featured_image?.split('.').at(-1) as string
+
+            const signedRes = await createSignedURL({
+              fileName: idImage,
+              fileType
+            })
+
+            if (!signedRes.success) {
+              toast.dismiss()
+              toast.error(signedRes.error)
+              return
+            }
+
+            const uploadRes = await uploadThumbnail({
+              image: { data: imageRaw, type: fileType },
+              url: signedRes.data.url
+            })
+
+            if (uploadRes.error) {
+              toast.dismiss()
+              toast.error(uploadRes.error)
+              return
+            }
+
+            data.featured_image = signedRes.data.public_url
+          }
 
           const res = await updatePost({
             id: post.id,
@@ -149,10 +188,16 @@ export function UpdatePostForm({ categories, post }: UpdatePostFormProps) {
                 value: s.slug
               }))}
             />
-            <DefaultField
+            <DefaultImageField
               name="featured_image"
               label="Imagem de Capa"
               type="file"
+            />
+            <Image
+              src={post.featuredImage || '/doblog-thumb-placeholder.jpg'}
+              width={280}
+              height={160}
+              alt="Post Thumbnail"
             />
             <DefaultField
               name="slug"

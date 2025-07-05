@@ -14,6 +14,10 @@ import { Button } from '@/components/ui/button'
 import { Form } from '@/components/ui/form'
 
 import type { listCategories } from '@/actions/dashboard/category'
+import {
+  createSignedURL,
+  uploadThumbnail
+} from '@/actions/dashboard/posts/thumbnail'
 import type { SuccessData } from '@/actions/types'
 import { createPostSchema } from '@/infra/validations/schemas/post'
 import { useRef } from 'react'
@@ -40,15 +44,44 @@ export function CreatePostForm({ categories }: CreatePostFormProps) {
       <form
         className="flex flex-col gap-4 p-4"
         onSubmit={form.handleSubmit(async (data) => {
-          toast.loading('Creating posts')
-          console.log(data, form.getValues())
+          const file = document.querySelector("input[type='file']")
+          const fileType = data.featured_image?.split('.').at(-1) as string
+
+          // @ts-ignore
+          const imageRaw = file?.files?.[0] as File
+
+          const fileName = `${Date.now()}`
+
+          const res1 = await createSignedURL({ fileType, fileName })
+
+          if (!res1.success) {
+            toast.error(res1.error)
+            return
+          }
+
+          const { public_url, url: uploadURL } = res1.data
+
+          const res2 = await uploadThumbnail({
+            image: {
+              data: imageRaw,
+              type: fileType
+            },
+            url: uploadURL
+          })
+
+          if (res2.error) {
+            toast.error(res2.error)
+            return
+          }
+
           const res = await createPost({
             category_slug: data.category_slug,
             content: data.content,
             excerpt: data.excerpt,
             slug: data.slug,
             subcategory_slug: data.subcategory_slug,
-            title: data.title
+            title: data.title,
+            featured_image: public_url
           })
 
           toast.dismiss()
@@ -85,6 +118,7 @@ export function CreatePostForm({ categories }: CreatePostFormProps) {
             <Button
               type="submit"
               variant="secondary"
+              disabled={form.formState.isSubmitting}
               onClick={() => {
                 action.current = 'CREATE'
               }}
@@ -94,6 +128,7 @@ export function CreatePostForm({ categories }: CreatePostFormProps) {
             </Button>
             <Button
               type="submit"
+              disabled={form.formState.isSubmitting}
               onClick={() => {
                 action.current = 'CREATE-AND-UPDATE'
               }}

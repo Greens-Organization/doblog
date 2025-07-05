@@ -5,9 +5,7 @@ import { failure, success } from '@/actions/response'
 import type { WithPagination } from '@/actions/types'
 import { env } from '@/env'
 
-export async function listPosts(
-  params: Partial<{ category_slug: string; subcategory_slug: string }>
-) {
+export async function listPosts(params: Partial<{ status: string }>) {
   const { header } = await getSession()
 
   const res = await fetch(

@@ -15,6 +15,7 @@ interface CreatePostProps {
   content: string
   category_slug: string
   subcategory_slug?: string
+  featured_image?: string
 }
 
 function makeCreatePostBody(body: CreatePostProps) {
@@ -24,7 +25,8 @@ function makeCreatePostBody(body: CreatePostProps) {
     excerpt: body.excerpt,
     content: body.content,
     category_slug: body.category_slug,
-    subcategory_slug: body.subcategory_slug
+    subcategory_slug: body.subcategory_slug,
+    featured_image: body.featured_image
   }
 }
 

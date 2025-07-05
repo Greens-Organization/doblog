@@ -2,7 +2,7 @@
 import {
   deleteSubCategory,
   updateSubCategory
-} from '@/actions/blog/subcategory'
+} from '@/actions/dashboard/subcategory'
 import { DeleteButton } from '@/components/buttons'
 import { Button } from '@/components/ui/button'
 import {
