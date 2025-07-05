@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card'
+import Image from 'next/image'
 import Link from 'next/link'
 import { use } from 'react'
 
@@ -34,13 +35,13 @@ export function PostList({ postsPromise }: PostListProps) {
           <Link key={String(i)} href={`/posts/${post.slug}`}>
             <Card className="h-full overflow-hidden transition-all hover:shadow-md pt-0">
               <div className="aspect-video w-full overflow-hidden">
-                {/* <Image
+                <Image
                   src={post.featuredImage || '/placeholder.svg'}
                   alt={post.title}
                   width={400}
                   height={200}
                   className="h-full w-full object-cover"
-                /> */}
+                />
               </div>
               <CardHeader>
                 <CardTitle>{post.title}</CardTitle>
