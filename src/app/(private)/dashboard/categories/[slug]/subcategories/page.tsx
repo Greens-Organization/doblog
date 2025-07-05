@@ -1,4 +1,4 @@
-import { listSubcategories } from '@/actions/blog/subcategory'
+import { listSubcategories } from '@/actions/dashboard/subcategory'
 import { DashNavbar } from '@/app/(private)/dashboard/components/dash-navbar'
 import { DefaultError } from '@/components/errors'
 import { SearchFilter } from '@/components/filters'

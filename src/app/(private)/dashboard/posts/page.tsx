@@ -4,12 +4,12 @@ import { DefaultError } from '@/components/errors'
 import { PostsTable } from './posts-table'
 
 interface PageProps {
-  searchParams: Promise<{ status?: string; name?: string }>
+  searchParams: Promise<{ status?: string }>
 }
 
 export default async function Page({ searchParams }: PageProps) {
   const search = await searchParams
-  const res = await listPosts({ name: search.name, status: search.status })
+  const res = await listPosts({ status: search.status || 'all' })
 
   if (!res.success) return <DefaultError description={res.error} />
 
