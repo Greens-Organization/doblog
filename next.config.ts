@@ -8,7 +8,10 @@ const nextConfig: NextConfig = {
     nodeMiddleware: true
   },
   images: {
-    remotePatterns: [{ hostname: 'api.dicebear.com' }]
+    remotePatterns: [
+      { hostname: 'api.dicebear.com' },
+      { hostname: 'localhost' }
+    ]
   },
   logging: {
     fetches: {
