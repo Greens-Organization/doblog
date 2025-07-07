@@ -29,7 +29,7 @@ export const env = createEnv({
 
     // S3
     S3_ENDPOINT: zod.string().min(1),
-    S3_PORT: zod.coerce.number().min(1),
+    S3_PORT: zod.coerce.number().min(1).optional(),
     S3_ACCESS_KEY: zod.string().min(1),
     S3_SECRET_KEY: zod.string().min(1),
     S3_BUCKETNAME: zod.string().min(1),

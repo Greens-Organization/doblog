@@ -7,7 +7,7 @@ import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { category, post, subcategory } from '@/infra/db/schemas/blog'
 import { zod } from '@/infra/lib/zod'
-import { and, count, eq } from 'drizzle-orm'
+import { and, count, eq, inArray } from 'drizzle-orm'
 import type { IGetPublishedPostDTO } from '../../dto'
 
 const searchParamsSchema = zod
@@ -26,7 +26,7 @@ const searchParamsSchema = zod
 
 interface ResponseDTO {
   category: IPublicCategoryDTO
-  subcategory: IPublicSubcategoryDTO
+  subcategories: IPublicSubcategoryDTO[]
   data: IGetPublishedPostDTO[]
   pagination: {
     total: number
@@ -63,7 +63,7 @@ export async function listPostsByCategoryOrSubcategoryPublic(
     }
 
     let categoryData
-    let subcategoryData
+    let subcategoriesData
 
     if (params.category_slug) {
       const categoryResult = await db.query.category.findFirst({
@@ -74,11 +74,8 @@ export async function listPostsByCategoryOrSubcategoryPublic(
         return left(new NotFoundError('Category not found'))
       }
 
-      const subcategoryResult = await db.query.subcategory.findFirst({
-        where: and(
-          eq(subcategory.categoryId, categoryResult.id),
-          eq(subcategory.isDefault, true)
-        ),
+      const subcategoriesResult = await db.query.subcategory.findMany({
+        where: and(eq(subcategory.categoryId, categoryResult.id)),
         columns: {
           categoryId: false,
           isDefault: false
@@ -94,16 +91,16 @@ export async function listPostsByCategoryOrSubcategoryPublic(
         }
       })
 
-      if (!subcategoryResult) {
+      if (!subcategoriesResult || subcategoriesResult.length === 0) {
         return left(
           new NotFoundError('Default Subcategory not found for this Category')
         )
       }
 
       categoryData = categoryResult
-      subcategoryData = subcategoryResult
+      subcategoriesData = subcategoriesResult
     } else {
-      const subcategoryResult = await db.query.subcategory.findFirst({
+      const subcategoriesResult = await db.query.subcategory.findMany({
         where: eq(subcategory.slug, params.subcategory_slug!),
         columns: {
           isDefault: false
@@ -119,12 +116,12 @@ export async function listPostsByCategoryOrSubcategoryPublic(
         }
       })
 
-      if (!subcategoryResult) {
+      if (!subcategoriesResult || subcategoriesResult.length === 0) {
         return left(new NotFoundError('Subcategory not found'))
       }
 
       const categoryResult = await db.query.category.findFirst({
-        where: eq(category.id, subcategoryResult.categoryId)
+        where: eq(category.id, subcategoriesResult[0].categoryId)
       })
 
       if (!categoryResult) {
@@ -134,7 +131,7 @@ export async function listPostsByCategoryOrSubcategoryPublic(
       }
 
       categoryData = categoryResult
-      subcategoryData = subcategoryResult
+      subcategoriesData = subcategoriesResult
     }
 
     const totalQuery = await db
@@ -142,7 +139,10 @@ export async function listPostsByCategoryOrSubcategoryPublic(
       .from(post)
       .where(
         and(
-          eq(post.subcategoryId, subcategoryData!.id),
+          inArray(
+            post.subcategoryId,
+            subcategoriesData.map((subcat) => subcat.id)
+          ),
           eq(post.status, 'published')
         )
       )
@@ -166,7 +166,10 @@ export async function listPostsByCategoryOrSubcategoryPublic(
 
     const posts = await db.query.post.findMany({
       where: and(
-        eq(post.subcategoryId, subcategoryData.id),
+        inArray(
+          post.subcategoryId,
+          subcategoriesData.map((subcat) => subcat.id)
+        ),
         eq(post.status, 'published')
       ),
       limit: perPage,
@@ -203,7 +206,18 @@ export async function listPostsByCategoryOrSubcategoryPublic(
     })
 
     const { id: categoryId, ...publicCategoryData } = categoryData
-    const { id: subcategoryId, ...publicSubcategoryData } = subcategoryData
+    const publicSubcategoriesData = subcategoriesData.map((subcat) => ({
+      name: subcat.name,
+      slug: subcat.slug,
+      description: subcat.description,
+      createdAt: subcat.createdAt,
+      updatedAt: subcat.updatedAt,
+      category: {
+        name: subcat.category.name,
+        slug: subcat.category.slug,
+        description: subcat.category.description
+      }
+    }))
 
     return right({
       pagination: {
@@ -215,7 +229,7 @@ export async function listPostsByCategoryOrSubcategoryPublic(
         has_previous: hasPrevious
       },
       category: publicCategoryData,
-      subcategory: publicSubcategoryData,
+      subcategories: publicSubcategoriesData,
       data: posts
     })
   } catch (error) {

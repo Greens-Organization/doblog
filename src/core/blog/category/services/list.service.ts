@@ -114,16 +114,19 @@ export async function listCategories(
         ), 0
       )::integer as "totalPost",
       COALESCE(
-        json_agg(
-          json_build_object(
-            'id', s.id,
-            'name', s.name,
-            'slug', s.slug,
-            'description', s.description
-          )
-        ) FILTER (WHERE s.id IS NOT NULL), 
-        '[]'::json
-      ) as subcategory
+    (
+      SELECT json_agg(sub)
+      FROM (
+        SELECT DISTINCT
+          s.id,
+          s.name,
+          s.slug,
+          s.description
+        FROM subcategory s
+        WHERE s.category_id = c.id
+      ) sub
+    ), '[]'::json
+  ) as subcategory
     FROM category c
     ${sql.raw(joinClause)}
     LEFT JOIN subcategory s ON c.id = s.category_id

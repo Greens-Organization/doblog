@@ -60,7 +60,6 @@ export function UpdatePostForm({ categories, post }: UpdatePostFormProps) {
         className="flex flex-col gap-4 p-4"
         onSubmit={form.handleSubmit(async (data) => {
           toast.loading('Creating posts')
-          console.log(post.featuredImage)
           if (post.featuredImage !== data.featured_image) {
             // Get Id from url [url]/:id.:image-type
             const file = document.querySelector("input[type='file']")

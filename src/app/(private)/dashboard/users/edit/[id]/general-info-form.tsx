@@ -25,7 +25,6 @@ export function GeneralInfoForm({ user }: { user: IUserDTO }) {
       <form
         className="space-y-3"
         onSubmit={form.handleSubmit(async (data) => {
-          console.log(user.id)
           toast.loading('Updating user...')
           const res = await updateUser({ id: user.id, ...data })
 
