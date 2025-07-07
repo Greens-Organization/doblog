@@ -10,7 +10,8 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { hostname: 'api.dicebear.com' },
-      { hostname: 'localhost' }
+      { hostname: 'localhost' },
+      { hostname: 'cdn.grngroup.net' }
     ]
   },
   logging: {
