@@ -36,7 +36,15 @@ export async function createThumbnail(
       2 * 60
     )
 
-    const publicURL = `http://${env.S3_ENDPOINT}:${env.S3_PORT}/${env.S3_BUCKETNAME}/${fileName}`
+    const SSL = env.S3_USESSL ? 'https://' : 'http://'
+
+    const publicURL = [
+      SSL,
+      env.S3_ENDPOINT,
+      env.S3_PORT ? `:${env.S3_PORT}` : '',
+      `/${env.S3_BUCKETNAME}`,
+      `/${fileName}`
+    ].join('')
 
     return right({
       body: { public_url: publicURL, url },
