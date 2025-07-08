@@ -1,17 +1,18 @@
+import { listCategories } from '@/actions/blog/category'
 import { Footer } from '@/components/footer'
 import { Header } from '@/components/header'
 import { CallToAction } from './components/call-to-action'
-import { Faq } from './components/faq'
 import { MainCategories } from './components/main-categories'
 
-export default function Home() {
+export default function Page() {
+  const categoriesPromise = listCategories()
+
   return (
-    <section>
+    <section className="min-h-svh flex flex-col">
       <Header />
-      <main className="space-y-8 py-12">
+      <main className="space-y-8 py-12 flex flex-1 flex-col">
         <CallToAction />
-        <MainCategories />
-        <Faq />
+        <MainCategories categoriesPromise={categoriesPromise} />
       </main>
       <Footer />
     </section>
