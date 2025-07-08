@@ -1,13 +1,11 @@
 'use client'
-import { useSession } from '@/infra/lib/better-auth/auth-client'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useConfig } from './providers/config-provider'
 
 const links = [
   { label: 'Home', href: '/' },
-  { label: 'Categorias', href: '/categories' },
-  { label: 'FAQ', href: '/#faq' }
+  { label: 'Categorias', href: '/categories' }
 ] as const
 
 const loaderProp = ({ src }: { src: string }) => {
@@ -15,7 +13,6 @@ const loaderProp = ({ src }: { src: string }) => {
 }
 
 export function Header() {
-  const { data: session, isPending } = useSession()
   const { config } = useConfig()
 
   return (
@@ -49,14 +46,6 @@ export function Header() {
             ))}
           </ul>
         </nav>
-
-        <Link
-          href="/dashboard"
-          className="text-sm font-medium text-primary hover:text-primary/80 duration-150"
-        >
-          {isPending ? '' : session?.user.name.split(' ')[0]}
-          {!isPending && session?.user ? '' : 'Login'}
-        </Link>
       </div>
     </header>
   )
