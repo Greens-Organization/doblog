@@ -12,30 +12,30 @@ export function Markdown({ content }: MarkdownProps) {
     <ReactMarkdown
       components={{
         h1: ({ node, ...props }) => (
-          <h1 className="mb-4 mt-6 text-3xl font-bold" {...props} />
+          <h1 className="editor-heading-h1" {...props} />
         ),
         h2: ({ node, ...props }) => (
-          <h2 className="mb-3 mt-5 text-2xl font-bold" {...props} />
+          <h2 className="editor-heading-h2" {...props} />
         ),
         h3: ({ node, ...props }) => (
-          <h3 className="mb-3 mt-4 text-xl font-bold" {...props} />
+          <h3 className="editor-heading-h3" {...props} />
+        ),
+        h4: ({ node, ...props }) => (
+          <h4 className="editor-heading-h4" {...props} />
         ),
         p: ({ node, ...props }) => <p className="mb-4 leading-7" {...props} />,
         ul: ({ node, ...props }) => (
-          <ul className="mb-4 list-disc pl-6" {...props} />
+          <ul className="editor-list-ul" {...props} />
         ),
         ol: ({ node, ...props }) => (
-          <ol className="mb-4 list-decimal pl-6" {...props} />
+          <ol className="editor-list-ol" {...props} />
         ),
-        li: ({ node, ...props }) => <li className="mb-1" {...props} />,
-        a: ({ node, ...props }) => (
-          <a className="text-primary hover:underline" {...props} />
+        li: ({ node, ...props }) => (
+          <li className="editor-listitem" {...props} />
         ),
+        a: ({ node, ...props }) => <a className="editor-link" {...props} />,
         blockquote: ({ node, ...props }) => (
-          <blockquote
-            className="mb-4 border-l-4 border-primary/20 pl-4 italic"
-            {...props}
-          />
+          <blockquote className="editor-quote" {...props} />
         ),
         code: ({ node, className, children, ...props }) => {
           const match = /language-(\w+)/.exec(className || '')

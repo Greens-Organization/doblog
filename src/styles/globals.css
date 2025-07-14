@@ -171,3 +171,133 @@
     clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
   }
 }
+
+.editor-container {
+  @apply relative w-full;
+}
+
+.editor-inner {
+  @apply bg-background relative border rounded-b-lg;
+}
+
+.editor-input {
+  @apply min-h-[300px] resize-none text-sm relative outline-none p-4 font-sans leading-6 text-foreground caret-foreground overflow-y-auto;
+}
+
+.editor-placeholder {
+  @apply text-muted-foreground absolute top-4 left-4 text-sm pointer-events-none select-none;
+}
+
+.editor-paragraph {
+  @apply m-0 mb-2 relative;
+}
+
+.editor-paragraph:last-child {
+  @apply mb-0;
+}
+
+.editor-heading-h1 {
+  @apply text-3xl font-semibold text-foreground m-0 mb-3 p-0;
+}
+
+.editor-heading-h2 {
+  @apply text-2xl font-semibold text-foreground m-0 mb-2 p-0;
+}
+
+.editor-heading-h3 {
+  @apply text-xl font-semibold text-foreground m-0 mb-2 p-0;
+}
+
+.editor-heading-h4 {
+  @apply text-lg font-semibold text-foreground m-0 mb-2 p-0;
+}
+
+.editor-quote {
+  @apply m-0 ml-5 mb-2 text-sm text-muted-foreground border-l-4 border-border pl-4;
+}
+
+.editor-list-ol {
+  @apply p-0 m-0 ml-4 list-decimal;
+}
+
+.editor-list-ul {
+  @apply p-0 m-0 ml-4 list-disc;
+}
+
+.editor-listitem {
+  @apply my-1 mx-8;
+}
+
+.editor-nested-listitem {
+  @apply list-none;
+}
+
+.editor-text-bold {
+  @apply font-semibold;
+}
+
+.editor-text-italic {
+  @apply italic;
+}
+
+.editor-text-underline {
+  @apply underline;
+}
+
+.editor-text-strikethrough {
+  @apply line-through;
+}
+
+.editor-text-underlineStrikethrough {
+  @apply underline;
+}
+
+.editor-text-code {
+  @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono;
+}
+
+.editor-link {
+  @apply text-primary underline-offset-4 hover:underline;
+}
+
+.editor-code {
+  @apply bg-muted font-mono block p-4 text-sm my-2 rounded border overflow-x-auto;
+  tab-size: 2;
+  white-space: pre;
+}
+
+.toolbar {
+  @apply flex w-full;
+}
+
+.editor-tokenComment {
+  @apply text-muted-foreground;
+}
+
+.editor-tokenPunctuation {
+  @apply text-foreground;
+}
+
+.editor-tokenProperty {
+  @apply text-blue-600 dark:text-blue-400;
+}
+
+.editor-tokenSelector {
+  @apply text-green-600 dark:text-green-400;
+}
+
+.editor-tokenOperator {
+  @apply text-orange-600 dark:text-orange-400;
+}
+
+.editor-tokenAttr {
+  @apply text-purple-600 dark:text-purple-400;
+}
+
+.editor-tokenVariable {
+  @apply text-red-600 dark:text-red-400;
+}
+
+.editor-tokenFunction {
+  @apply text-blue-600 dark:text-blue-400;
+}
