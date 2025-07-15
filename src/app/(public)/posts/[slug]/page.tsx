@@ -1,67 +1,27 @@
+import { getPost } from '@/actions/blog/post'
 import { Footer } from '@/components/footer'
 import { Header } from '@/components/header'
 import { Markdown } from '@/components/markdown'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Calendar, User } from 'lucide-react'
+import { ArrowLeft, Calendar } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { SharePost } from './share-post'
 
 interface PostPageProps {
   params: Promise<{ slug: string }>
 }
 
-export default function PostPage({ params }: PostPageProps) {
-  // Em produção, buscar dados do post pelo slug
-  const post = {
-    id: 1,
-    title: 'Introdução ao Next.js 14',
-    subtitle: 'Aprenda as novidades e como implementar em seus projetos',
-    content: `
-# Introdução ao Next.js 14
+export default async function PostPage({ params }: PostPageProps) {
+  const { slug } = await params
 
-Next.js 14 traz várias melhorias significativas e novas funcionalidades que tornam o desenvolvimento de aplicações React ainda mais eficiente.
+  const postRes = await getPost(slug)
 
-## Server Components
+  if (!postRes.success) return null
 
-Os Server Components são uma das principais novidades do Next.js 13 que foram aprimorados na versão 14. Eles permitem renderizar componentes no servidor, reduzindo o JavaScript enviado ao cliente.
-
-\`\`\`jsx
-// Este é um Server Component
-export default function ServerComponent() {
-  return <div>Renderizado no servidor</div>
-}
-\`\`\`
-
-## Server Actions
-
-As Server Actions permitem executar código no servidor diretamente de componentes cliente, simplificando operações como submissão de formulários.
-
-\`\`\`jsx
-// Exemplo de Server Action
-export async function submitForm(formData) {
-  'use server'
-  
-  // Processar dados do formulário no servidor
-  const name = formData.get('name')
-  await saveToDatabase(name)
-}
-\`\`\`
-
-## Partial Rendering
-
-O Partial Rendering permite atualizar apenas partes específicas da página quando os dados mudam, melhorando significativamente a performance.
-
-## Conclusão
-
-Next.js 14 representa um grande avanço para o framework, tornando-o ainda mais poderoso para desenvolvimento de aplicações web modernas.
-    `,
-    image: '/placeholder.svg?height=400&width=800',
-    author: 'João Silva',
-    date: '2023-12-15',
-    category: 'Tecnologia',
-    subCategories: ['Desenvolvimento Web', 'React', 'JavaScript']
-  }
+  const { data: post } = postRes
 
   return (
     <section>
@@ -74,33 +34,38 @@ Next.js 14 representa um grande avanço para o framework, tornando-o ainda mais 
               Voltar
             </Link>
           </Button>
+
           <div className="mb-8 space-y-2">
-            <div className="flex flex-wrap gap-2">
-              <Badge>{post.category}</Badge>
-              {post.subCategories.map((subCategory) => (
-                <Badge key={subCategory} variant="outline">
-                  {subCategory}
-                </Badge>
-              ))}
-            </div>
             <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
               {post.title}
             </h1>
-            <p className="text-xl text-muted-foreground">{post.subtitle}</p>
-            <div className="flex items-center gap-4 pt-2 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <User className="h-4 w-4" />
-                <span>{post.author}</span>
-              </div>
+            <p className="text-xl text-muted-foreground">{post.excerpt}</p>
+            <div className="flex items-center gap-4 pt-2 text-sm text-muted-foreground justify-between">
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
-                <span>{new Date(post.date).toLocaleDateString('pt-BR')}</span>
+                <span>
+                  {new Date(post.createdAt).toLocaleDateString('pt-BR')}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Badge asChild>
+                  <Link href={`/categories/${post.subcategory.category.slug}`}>
+                    {post.subcategory.category.name}
+                  </Link>
+                </Badge>
+                <Badge key={post.subcategory.slug} variant="outline" asChild>
+                  <Link
+                    href={`/categories/${post.subcategory.category.slug}?sub=${post.subcategory.slug}`}
+                  >
+                    {post.subcategory.name}
+                  </Link>
+                </Badge>
               </div>
             </div>
           </div>
           <div className="mb-8 aspect-video w-full overflow-hidden rounded-lg">
             <Image
-              src={post.image || '/placeholder.svg'}
+              src={post.featuredImage || '/placeholder.svg'}
               alt={post.title}
               width={800}
               height={400}
@@ -109,6 +74,21 @@ Next.js 14 representa um grande avanço para o framework, tornando-o ainda mais 
           </div>
           <div className="prose prose-gray max-w-none dark:prose-invert">
             <Markdown content={post.content} />
+          </div>
+          <div className="flex gap-4 justify-between items-center">
+            <div className="flex flex-wrap gap-2 items-center">
+              <Avatar>
+                <AvatarImage src={post.author.image || ''} />
+                <AvatarFallback>{post.author.name[0]}</AvatarFallback>
+              </Avatar>
+              <hgroup>
+                <h4 className="text-sm">{post.author.name}</h4>
+                <span className="text-muted-foreground text-sm">
+                  {new Date(post.createdAt).toLocaleDateString()}
+                </span>
+              </hgroup>
+            </div>
+            <SharePost description={post.excerpt} title={post.title} />
           </div>
         </article>
       </main>
