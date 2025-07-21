@@ -1,9 +1,9 @@
 {
   "admin": {
-    "name": "Admin Person",
+    "name": "Owner Person",
     "email": "admin@admin.com",
     "password": "admin1234",
-    "role": "admin"
+    "role": "owner"
   },
   "editor": {
     "name": "Editor Person",

@@ -24,10 +24,10 @@ export async function getBlogPublic(
     }
 
     const isExistUser = await db.query.user.findFirst({
-      where: and(ne(user.email, 'anonymous'), eq(user.role, 'admin'))
+      where: and(ne(user.email, 'anonymous'), eq(user.role, 'owner'))
     })
 
-    if (!isExistUser || isExistUser.role !== 'admin') {
+    if (!isExistUser || isExistUser.role !== 'owner') {
       return left(
         new NotFoundError('First user not created yet', { statusCode: 412 })
       )

@@ -27,7 +27,7 @@ export async function getPost(
     const sessionResult = await ensureAuthenticated(request)
     if (isLeft(sessionResult)) return left(sessionResult.value)
     const session = sessionResult.value
-    const isAdmin = session!.user.role === 'admin'
+    const isAdmin = session!.user.role === 'owner'
 
     const canAccess = await auth.api.hasPermission({
       headers: request.headers,
