@@ -78,14 +78,24 @@ export async function deleteUser(
     if (!existingUser) {
       return left(new NotFoundError('User not found'))
     }
-    if (existingUser.role === 'admin') {
-      const admins = await db.query.user.findMany({
-        where: eq(user.role, 'admin')
-      })
-      if (admins.length <= 1) {
-        return left(new ValidationError('At least one admin is required'))
-      }
+
+    // Check if the user is an owner
+    if (existingUser.role === 'owner') {
+      return left(new ValidationError('Cannot delete the owner user'))
     }
+
+    if (existingUser.role === 'admin' && session?.user.role !== 'owner') {
+      return left(new ValidationError('Cannot delete an admin user'))
+    }
+
+    // if (existingUser.role === 'admin') {
+    //   const admins = await db.query.user.findMany({
+    //     where: eq(user.role, 'admin')
+    //   })
+    //   if (admins.length <= 1) {
+    //     return left(new ValidationError('At least one admin is required'))
+    //   }
+    // }
 
     const anonymousUser = await db.query.user.findFirst({
       where: and(eq(user.email, 'anonymous'))
