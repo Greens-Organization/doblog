@@ -8,7 +8,7 @@ import { account, member, user } from '@/infra/db/schemas/auth'
 import { auth } from '@/infra/lib/better-auth/auth'
 import type { zod } from '@/infra/lib/zod'
 import { createFirstUserSchema } from '@/infra/validations/schemas/user'
-import { eq, not } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import type { IUserDTO } from '../../user/dto'
 
 export async function createFirstUser(
@@ -17,7 +17,7 @@ export async function createFirstUser(
   try {
     const blogData = await db.query.organization.findFirst()
     const isExistUser = await db.query.user.findFirst({
-      where: not(eq(user.email, 'anonymous'))
+      where: eq(user.role, 'owner')
     })
     if (!blogData) {
       return left(
@@ -46,7 +46,7 @@ export async function createFirstUser(
           name: parsed.data.name,
           email: parsed.data.email,
           emailVerified: true,
-          role: 'admin'
+          role: 'owner'
         })
         .returning()
 
@@ -60,7 +60,7 @@ export async function createFirstUser(
       await tx.insert(member).values({
         organizationId: blogData.id,
         userId: createdUser.id,
-        role: 'admin'
+        role: 'owner'
       })
 
       return createdUser

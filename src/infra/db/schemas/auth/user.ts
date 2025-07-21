@@ -8,7 +8,7 @@ export const user = pgTable('user', {
   email: text('email').notNull().unique(),
   emailVerified: boolean('email_verified').notNull(),
   image: text('image'),
-  role: text('role', { enum: ['user', 'editor', 'admin'] })
+  role: text('role', { enum: ['user', 'editor', 'admin', 'owner'] })
     .default('user')
     .notNull(),
   createdAt,
