@@ -11,14 +11,16 @@ import {
   post,
   subcategory
 } from '@/infra/db/schemas/blog'
-import { ensureAuthenticated } from '@/infra/helpers/auth'
+import { checkIsAdmin, ensureAuthenticated } from '@/infra/helpers/auth'
 import { auth } from '@/infra/lib/better-auth/auth'
 import { zod } from '@/infra/lib/zod'
-import { and, count, desc, eq, inArray } from 'drizzle-orm'
+import { and, count, desc, eq, inArray, like } from 'drizzle-orm'
 import { checkUserCategories } from '../../user/services'
 import type { IGetPostDTO } from '../dto'
+import { sanitizeValue } from '@/infra/helpers/sanitize'
 
 const searchParamsSchema = zod.object({
+  title: zod.string().min(1).optional(),
   category_slug: zod.string().optional(),
   subcategory_slug: zod.string().optional(),
   status: zod
@@ -49,7 +51,7 @@ export async function listPosts(
     const sessionResult = await ensureAuthenticated(request)
     if (isLeft(sessionResult)) return left(sessionResult.value)
     const session = sessionResult.value
-    const isAdmin = session!.user.role === 'admin'
+    const isAdmin = checkIsAdmin(session)
 
     const canAccess = await auth.api.hasPermission({
       headers: request.headers,
@@ -68,6 +70,7 @@ export async function listPosts(
 
     const url = new URL(request.url)
     const params = searchParamsSchema.parse({
+      title: url.searchParams.get('title') ?? undefined,
       category_slug: url.searchParams.get('category_slug') ?? undefined,
       subcategory_slug: url.searchParams.get('subcategory_slug') ?? undefined,
       page: url.searchParams.get('page') ?? undefined,
@@ -226,6 +229,11 @@ export async function listPosts(
       )
     }
 
+    if (params.title) {
+      // 5. Title filter - busca case-insensitive
+      whereList.push(like(post.title, `%${sanitizeValue(params.title)}%`))
+    }
+
     const whereClause = and(...whereList)
 
     // Count total posts for pagination
@@ -275,6 +283,8 @@ export async function listPosts(
         }
       }
     })
+
+    console.log('Posts fetched:', posts)
 
     return right({
       pagination: {

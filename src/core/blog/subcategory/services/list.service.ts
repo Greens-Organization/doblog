@@ -4,7 +4,11 @@ import { isLeft, left, right } from '@/core/error/either'
 import { UnauthorizedError } from '@/core/error/errors'
 import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
-import { ensureAuthenticated } from '@/infra/helpers/auth'
+import {
+  checkIsAdmin,
+  checkIsEditor,
+  ensureAuthenticated
+} from '@/infra/helpers/auth'
 import { sanitizeValue } from '@/infra/helpers/sanitize'
 import { auth } from '@/infra/lib/better-auth/auth'
 import { zod } from '@/infra/lib/zod'
@@ -45,8 +49,8 @@ export async function listSubcategories(
     const sessionResult = await ensureAuthenticated(request)
     if (isLeft(sessionResult)) return left(sessionResult.value)
     const session = sessionResult.value!
-    const isAdmin = session.user.role === 'admin'
-    const isEditor = session.user.role === 'editor'
+    const isAdmin = checkIsAdmin(session)
+    const isEditor = checkIsEditor(session)
 
     const canAccess = await auth.api.hasPermission({
       headers: request.headers,

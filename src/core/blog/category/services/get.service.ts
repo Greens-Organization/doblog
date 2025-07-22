@@ -5,7 +5,7 @@ import { UnauthorizedError, ValidationError } from '@/core/error/errors'
 import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { PostStatus } from '@/infra/db/schemas/blog'
-import { ensureAuthenticated } from '@/infra/helpers/auth'
+import { checkIsEditor, ensureAuthenticated } from '@/infra/helpers/auth'
 import { extractAndValidatePathParams } from '@/infra/helpers/params'
 import { sanitizeValue } from '@/infra/helpers/sanitize'
 
@@ -30,7 +30,7 @@ export async function getCategory(
     const sessionResult = await ensureAuthenticated(request)
     if (isLeft(sessionResult)) return left(sessionResult.value)
     const session = sessionResult.value!
-    const isEditor = session.user.role === 'editor'
+    const isEditor = checkIsEditor(session)
 
     const canAccess = await auth.api.hasPermission({
       headers: request.headers,
