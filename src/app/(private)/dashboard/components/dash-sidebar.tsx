@@ -47,7 +47,7 @@ export function DashSidebar() {
 
   const items = isPending
     ? []
-    : data?.user.role === 'admin'
+    : ['admin', 'owner'].includes(data?.user?.role || '')
       ? adminItems
       : editorItems
 

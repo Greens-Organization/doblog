@@ -21,6 +21,16 @@ const statement = {
 
 const ac = createAccessControl(statement)
 
+const owner = ac.newRole({
+  blog: [...statement.blog],
+  post: [...statement.post],
+  category: [...statement.category],
+  subcategory: [...statement.subcategory],
+  user: [...statement.user],
+  profile: [...statement.profile],
+  invitation: [...statement.invitation]
+})
+
 const admin = ac.newRole({
   blog: [...statement.blog],
   post: [...statement.post],
@@ -47,4 +57,4 @@ const editor = ac.newRole({
   profile: ['update']
 })
 
-export { ac, admin, editor }
+export { ac, admin, editor, owner }

@@ -7,7 +7,7 @@ import {
 } from '@/core/error/errors'
 import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
-import { ensureAuthenticated } from '@/infra/helpers/auth'
+import { checkIsEditor, ensureAuthenticated } from '@/infra/helpers/auth'
 import { extractAndValidatePathParams } from '@/infra/helpers/params'
 import { auth } from '@/infra/lib/better-auth/auth'
 import { zod } from '@/infra/lib/zod'
@@ -25,7 +25,7 @@ export async function getSubcategory(
     const sessionResult = await ensureAuthenticated(request)
     if (isLeft(sessionResult)) return left(sessionResult.value)
     const session = sessionResult.value!
-    const isEditor = session.user.role === 'editor'
+    const isEditor = checkIsEditor(session)
 
     const canAccess = await auth.api.hasPermission({
       headers: request.headers,

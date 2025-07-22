@@ -80,14 +80,14 @@ async function seed() {
         role: 'editor'
       })
 
-      logger.info('Seed - Creating admin!')
+      logger.info('Seed - Creating owner!')
       const [newUser] = await tx
         .insert(user)
         .values({
           name: users.admin.name,
           email: users.admin.email,
           emailVerified: true,
-          role: 'admin',
+          role: 'owner',
           image: generateRandomURLAvatar({
             type: DicebearTypes.notionists
           }),
@@ -113,10 +113,10 @@ async function seed() {
         .values({
           organizationId: orgData.id,
           userId: newUser.id,
-          role: 'admin'
+          role: 'owner'
         })
         .returning()
-      logger.info('Seed - Admin created!')
+      logger.info('Seed - Owner created!')
 
       logger.info('Seed - Creating editor!')
       const [newEditorUser] = await tx

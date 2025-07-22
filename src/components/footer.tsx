@@ -15,8 +15,7 @@ export function Footer() {
           <Link href="/terms">Terms</Link>
           <Link href="/privacy">Privacy</Link>
           <Link href="/dashboard">
-            {isPending ? '' : 'My Account'}
-            {!isPending && session?.user ? '' : 'Login'}
+            {!isPending && session?.user ? 'My Account' : 'Login'}
           </Link>
         </nav>
       </div>

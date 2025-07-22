@@ -9,7 +9,7 @@ import {
 import { serviceHandleError } from '@/core/error/handlers'
 import { db } from '@/infra/db'
 import { category, post, subcategory } from '@/infra/db/schemas/blog'
-import { ensureAuthenticated } from '@/infra/helpers/auth'
+import { checkIsAdmin, ensureAuthenticated } from '@/infra/helpers/auth'
 import { extractAndValidatePathParams } from '@/infra/helpers/params'
 import { auth } from '@/infra/lib/better-auth/auth'
 import { zod } from '@/infra/lib/zod'
@@ -29,7 +29,7 @@ export async function updatePost(
     const sessionResult = await ensureAuthenticated(request)
     if (isLeft(sessionResult)) return left(sessionResult.value)
     const session = sessionResult.value
-    const isAdmin = session!.user.role === 'admin'
+    const isAdmin = checkIsAdmin(session)
 
     const canAccess = await auth.api.hasPermission({
       headers: request.headers,

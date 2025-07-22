@@ -1,4 +1,4 @@
-import { ac, admin, editor } from '@/core/auth/permissions'
+import { ac, admin, editor, owner } from '@/core/auth/permissions'
 import { blogRepository } from '@/core/blog/repository'
 import { env } from '@/env'
 import { makePasswordHasher } from '@/infra/cryptography/password'
@@ -83,6 +83,7 @@ export const auth = betterAuth({
       },
       ac,
       roles: {
+        owner,
         admin,
         editor
       },
@@ -92,7 +93,9 @@ export const auth = betterAuth({
   user: {
     additionalFields: {
       role: {
-        type: 'string'
+        type: 'string',
+        defaultValue: 'user',
+        returned: true
       }
     }
   }
